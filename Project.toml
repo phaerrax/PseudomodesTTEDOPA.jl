@@ -1,0 +1,7 @@
+name = "PseudomodesTTEDOPA"
+uuid = "79a75d10-d622-4972-b86a-039507c8d45b"
+authors = ["Davide Ferracin <davide.ferracin@protonmail.com> and contributors"]
+version = "0.1.0"
+
+[compat]
+julia = "1.6"
