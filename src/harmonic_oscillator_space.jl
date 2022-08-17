@@ -147,23 +147,6 @@ function ITensors.state(sn::StateName, st::SiteType"vecOsc", s::Index; kwargs...
   # perfect square, so the decimal part should be zero.
 end
 
-# There's a problem with this trick: before calling `state` as explained above,
-# ITensors also tries to call
-#   state(::StateName"Name", st::SiteType"Tag", s::Index; kwargs...)
-# for each Tag `st` in the Index `s`. If `nothing` is returned, then it goes on
-# to the next available Tag, exhausting all possibilities; if the return value
-# is not `nothing` then the result is passed to `itensor` and encapsulated into
-# an ITensor object.
-# The point is, if we create "vecOsc" sites through `siteinds` they will have
-# the Tags "Site" and "n=N" (for some `N`) too, and there is no
-#   state(::StateName{ThermEq}, ::SiteType{Site}, ::Index{Int64}; kwargs...)
-# (for example) or with "n=N". As a consequence, a MethodError exception is
-# thrown.
-# To solve this, we define a sort of "default" function which always returns
-# `nothing`, on which `state` can fall back if there is no other `state`
-# defined.
-ITensors.state(sn::StateName, st::SiteType, s::Index; kwargs...) = nothing
-
 function ITensors.state(::StateName{N}, ::SiteType"vecOsc"; dim=2) where {N}
   # Eigenstates of the number operator (NOT the canonical basis of ℂᵈⁱᵐ ⊗ ℂᵈⁱᵐ)
   n = parse(Int, String(N))
