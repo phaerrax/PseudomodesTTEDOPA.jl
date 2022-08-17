@@ -13,6 +13,10 @@ using PolyChaos
 using ProgressMeter
 using QuadGK
 
+import ITensors.state,
+       ITensors.op,
+       ITensors.space
+
 export allequal,
        #canonicalbasis,
        #canonicalmatrix,
