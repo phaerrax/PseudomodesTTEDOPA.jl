@@ -285,6 +285,23 @@ function readablecolours(n::Int)
   return distinguishable_colors(n, [RGB(1,1,1), RGB(0,0,0)], dropseed=true)
 end
 
+"""
+    filenamett(::Dict)
+
+Extracts the filename from the parameter list, supplied as a Dict, and
+formats it in a saw that's safe to use as text in TikZ nodes, plots, etc.,
+in typewriter font.
+"""
+function filenamett(d::Dict)
+  # Get basename and remove the .json extension.
+  filename = replace(basename(d["filename"]), ".json" => "")
+  # Sanitise string, escaping underscores.
+  filename = replace(filename, "_" => "\\_")
+  # Add \texttt command
+  filename = raw"\texttt{" * filename * "}"
+  return filename
+end
+
 # Defining the time interval of the simulation
 # ============================================
 
