@@ -272,6 +272,19 @@ function allequal(a)
   return all(x -> x == first(a), a)
 end
 
+"""
+    readablecolours(n::Int)
+
+Returns a list of `n` colours that stand out against a white background
+and black texts.
+"""
+function readablecolours(n::Int)
+  # White and black ([RGB(1,1,1), RGB(0,0,0)]) are used as seed colors to
+  # distinguishable_colors(), then dropped from the resulting array with
+  # dropseed=true.
+  return distinguishable_colors(n, [RGB(1,1,1), RGB(0,0,0)], dropseed=true)
+end
+
 # Defining the time interval of the simulation
 # ============================================
 
