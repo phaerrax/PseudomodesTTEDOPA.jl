@@ -168,7 +168,7 @@ function vonneumannentropy(ψ::MPS, sites::Vector{Index{Int64}}, n::Int)
   _, S, _ = svd(ψ[n], (linkind(ψ, n-1), sites[n]))
   # Compute the square of the singular values (aka the Schmidt coefficients
   # of the bipartition), and from them the entropy.
-  sqdiagS = [S[j,j]^2 for j ∈ dim(S, 1)]
+  sqdiagS = [S[j,j]^2 for j ∈ ITensors.dim(S, 1)]
   return -sum(p -> p * log(p), sqdiagS; init=0.0)
 end
 
