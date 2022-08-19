@@ -68,7 +68,7 @@ export twositeoperators,
        localop,
        interactionop,
        evolve,
-       current,
+       fermioncurrent,
        forwardflux,
        backwardflux
 

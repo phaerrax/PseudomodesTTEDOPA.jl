@@ -238,7 +238,7 @@ with OpName "Z"; `sites(leftsite)` and `sites(rightsite)` are assigned "plus"
 and "minus", and other sites are assigned "Id" operators. All these operators
 thus must be correctly defined in order to use this function.
 """
-function current(sites, leftsite::Int, rightsite::Int)
+function fermioncurrent(sites, leftsite::Int, rightsite::Int)
   # The function doesn't care about the SiteType on which it is applied.
   # This allows us to use it also on oscillators, when needed, for example
   # to measure the current between the first oscillator sites just beyond
