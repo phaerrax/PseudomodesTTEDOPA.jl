@@ -272,36 +272,6 @@ function allequal(a)
   return all(x -> x == first(a), a)
 end
 
-"""
-    readablecolours(n::Int)
-
-Returns a list of `n` colours that stand out against a white background
-and black texts.
-"""
-function readablecolours(n::Int)
-  # White and black ([RGB(1,1,1), RGB(0,0,0)]) are used as seed colors to
-  # distinguishable_colors(), then dropped from the resulting array with
-  # dropseed=true.
-  return distinguishable_colors(n, [RGB(1,1,1), RGB(0,0,0)], dropseed=true)
-end
-
-"""
-    filenamett(::Dict)
-
-Extracts the filename from the parameter list, supplied as a Dict, and
-formats it in a saw that's safe to use as text in TikZ nodes, plots, etc.,
-in typewriter font.
-"""
-function filenamett(d::Dict)
-  # Get basename and remove the .json extension.
-  filename = replace(basename(d["filename"]), ".json" => "")
-  # Sanitise string, escaping underscores.
-  filename = replace(filename, "_" => "\\_")
-  # Add \texttt command
-  filename = raw"\texttt{" * filename * "}"
-  return filename
-end
-
 # Defining the time interval of the simulation
 # ============================================
 
@@ -504,4 +474,46 @@ function embed_slice(sites::Array{Index{Int64}},
                 MPS(sites[range[end]+1 : end], "vecId"))
   end
   return mpo
+end
+
+# Other utilities
+# ===============
+
+"""
+    readablecolours(n::Int)
+
+Returns a list of `n` colours that stand out against a white background
+and black texts.
+"""
+function readablecolours(n::Int)
+  # White and black ([RGB(1,1,1), RGB(0,0,0)]) are used as seed colors to
+  # distinguishable_colors(), then dropped from the resulting array with
+  # dropseed=true.
+  return distinguishable_colors(n, [RGB(1,1,1), RGB(0,0,0)], dropseed=true)
+end
+
+"""
+    filenamett(::Dict)
+
+Extracts the filename from the parameter list, supplied as a Dict, and
+formats it in a saw that's safe to use as text in TikZ nodes, plots, etc.,
+in typewriter font.
+"""
+function filenamett(d::Dict)
+  # Get basename and remove the .json extension.
+  filename = replace(basename(d["filename"]), ".json" => "")
+  # Sanitise string, escaping underscores.
+  filename = replace(filename, "_" => "\\_")
+  # Add \texttt command
+  filename = raw"\texttt{" * filename * "}"
+  return filename
+end
+
+"""
+    consecutivepairs(v::AbstractVector)
+
+Return a list of Strings "(a,b)" formed by all adjacent items in `v`.
+"""
+function consecutivepairs(v::AbstractVector)
+  return string.("(", v[1:end-1], ",", v[2:end], ")")
 end
