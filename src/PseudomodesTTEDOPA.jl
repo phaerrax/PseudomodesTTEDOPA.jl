@@ -45,7 +45,7 @@ export groupplot,
        unifiedlogplot,
        unifiedplot
 
-include("plotting.jl")
+include("deprecated.jl")
 
 export chain_L1_state,
        chain_basis_states,

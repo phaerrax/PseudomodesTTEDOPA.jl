@@ -7,6 +7,7 @@ whether they are unique or repeated.
 Returns two lists, `unique` and `repeated`, packed into a tuple.
 """
 function categorise_parameters(parameter_lists)
+  Base.depwarn("This function will be removed in the future.", :categorise_parameters)
   distinct = String[]
   # We need to examine each parameter list to check if the dimension of the
   # oscillator Hilbert spaces are given separately for the cold and hot baths,
@@ -39,6 +40,7 @@ Create a custom title for each subplot in a group, displaying the parameters
 which have different values among the subplots.
 """
 function subplot_title(values_dict, keys)
+  Base.depwarn("This function will be removed in the future.", :subplot_title)
   rootdirname = "simulazioni_tesi"
   sourcepath = Base.source_path()
   ind = findfirst(rootdirname, sourcepath)
@@ -68,6 +70,7 @@ The title will contain the parameters which are common to all subplots.
 function shared_title_fake_plot(subject::String,
                                 parameters;
                                 filenameastitle = false)
+  Base.depwarn("This function will be removed in the future.", :shared_title_fake_plot)
   # The big title contains parameters common to all simulations, therefore we
   # can choose any element from `parameter_lists` and the result is the same.
   
@@ -147,6 +150,7 @@ function groupplot(x_super,
     commonylabel,
     plottitle,
     plotsize)
+  Base.depwarn("This function will be removed in the future.", :groupplot)
   # If `labels` is a vector of row vectors of strings, then each subplot
   # already has its own set of labels (each column of the row vector corresponds
   # to the columns in each element of `y_super`).
@@ -272,6 +276,7 @@ in the label of each series.
 - `plotsize` → a Pair representing the plot size (in pixels).
 """
 function unifiedplot(x_super, y_super, parameter_super; filenameastitle = false, linestyle, xlabel, ylabel, plottitle, plotsize)
+  Base.depwarn("This function will be removed in the future.", :unifiedplot)
   # Sort the parameters into repeated and not-repeated, for the plot titles.
   if filenameastitle
     labels = [p["filename"] for p ∈ parameter_super]
@@ -308,6 +313,7 @@ Note that no check is performed whether the arguments of the logarithm are
 positive.
 """
 function unifiedlogplot(x_super, y_super, parameter_super; kwargs...)
+  Base.depwarn("This function will be removed in the future.", :unifiedlogplot)
   return unifiedplot(x_super,
                      [log.(Y) for Y ∈ y_super],
                      parameter_super;
