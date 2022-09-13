@@ -265,8 +265,10 @@ function fermioncurrent(sites, leftsite::Int, rightsite::Int)
           SiteType("HvS=1/2") ∈ sitetypes(first(sites)) ||
           SiteType("vecOsc") ∈ sitetypes(first(sites)) ||
           SiteType("HvOsc") ∈ sitetypes(first(sites)))
-    op = im * (-1)^n * (MPS(sites, string.("vec", tags1)) -
-                        MPS(sites, string.("vec", tags2)))
+    op = im * (-1)^n * (MPS(ComplexF64, sites, string.("vec", tags1)) -
+                        MPS(ComplexF64, sites, string.("vec", tags2)))
+    # The MPS(sites, states) constructor assumes Float64 as the data type,
+    # but here we need it to be complex.
   else
     throw(DomainError(s, "Unrecognised SiteType."))
   end
@@ -292,7 +294,7 @@ function forwardflux(sites,
           SiteType("HvS=1/2") ∈ sitetypes(first(sites)) ||
           SiteType("vecOsc") ∈ sitetypes(first(sites)) ||
           SiteType("HvOsc") ∈ sitetypes(first(sites)))
-    op = im * (-1)^n * MPS(sites, string.("vec", tags1))
+    op = im * (-1)^n * MPS(ComplexF64, sites, string.("vec", tags1))
   else
     throw(DomainError(s, "Unrecognised SiteType."))
   end
@@ -317,7 +319,7 @@ function backwardflux(sites,
           SiteType("HvS=1/2") ∈ sitetypes(first(sites)) ||
           SiteType("vecOsc") ∈ sitetypes(first(sites)) ||
           SiteType("HvOsc") ∈ sitetypes(first(sites)))
-    op = im * (-1)^n * MPS(sites, string.("vec", tags2))
+    op = im * (-1)^n * MPS(ComplexF64, sites, string.("vec", tags2))
   else
     throw(DomainError(s, "Unrecognised SiteType."))
   end
