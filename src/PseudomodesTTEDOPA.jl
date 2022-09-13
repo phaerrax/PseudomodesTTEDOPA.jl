@@ -28,15 +28,15 @@ export allequal,
        disablegrifqtech,
        embed_slice,
        filenamett,
-       #gellmannbasis,
-       #gellmannmatrix,
+       gellmannbasis,
+       gellmannmatrix,
        #isjson,
        levels,
        #linkdims,
        load_parameters,
        partialtrace,
        #sitetypes,
-       #vec,
+       vec,
        vonneumannentropy
 
 include("utils.jl")
