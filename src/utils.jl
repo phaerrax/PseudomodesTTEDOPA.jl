@@ -160,8 +160,8 @@ Compute the entanglement entropy of the biparition ``(1,…,n)|(n+1,…,N)`` of
 the system in state described by the MPS `ψ` (defined on the sites `sites`),
 using its Schmidt decomposition.
 """
-function vonneumannentropy(ψ::MPS, sites::Vector{Index{Int64}}, n::Int)
-  orthogonalize!(ψ, n)
+function vonneumannentropy(ψ₀::MPS, sites::Vector{Index{Int64}}, n::Int)
+  ψ = orthogonalize(ψ₀, n)
   # Decompose ψ[n] in singular values, treating the Link between sites n-1 and n
   # and the physical index as "row index"; the remaining index, the Link
   # between n and n+1, is the "column index".
