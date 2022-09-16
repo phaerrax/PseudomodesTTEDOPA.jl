@@ -8,6 +8,7 @@ using ITensors
 using JSON
 using LinearAlgebra
 using Measures
+using Observers
 using Plots
 using PolyChaos
 using ProgressMeter
