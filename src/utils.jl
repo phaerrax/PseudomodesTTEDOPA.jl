@@ -1,4 +1,13 @@
 """
+    groupresults(obs::Observer, name::String)
+
+If the observer returns an array of values, rearrange the results in a big matrix.
+"""
+function groupresults(obs::Observer, name::String)
+    return mapreduce(permutedims, vcat, results(obs, name))
+end
+
+"""
     disablegrifqtech()
 
 Disable the graphical output if the script is running on Qtech.

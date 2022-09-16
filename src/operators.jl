@@ -325,3 +325,74 @@ function backwardflux(sites,
   end
   return op
 end
+
+"""
+    hamiltonian_xy(length::Integer, energy::Real, coupling::Real)
+
+Return the Hamiltonian of an XY spin chain of given `length` and energies.
+"""
+function hamiltonian_xy(N, energy, coupling)
+    op = OpSum()
+    for j in 1:(N-1)
+        op += -0.5coupling, "S+", j, "S-", j + 1
+        op += -0.5coupling, "S-", j, "S+", j + 1
+    end
+    for j in 1:N
+        op += energy, "Sz", j
+    end
+    return op
+end
+
+"""
+    lindbladian_xy(length::Integer, spin_energy::Real, spin_coupling::Real)
+
+Return the Lindbladian operator ``-i[H,—]``, in vectorised form, associated to the
+Hamiltonian ``H`` of an XY spin chain of given `length` and energies.
+"""
+function lindbladian_xy(
+        chain_length::Integer,
+        spin_energy::Real,
+        spin_coupling::Real
+    )
+    N = chain_length
+    ε = spin_energy
+    λ = spin_coupling
+
+    op = OpSum()
+    for j in 1:(N - 1)
+        op += +0.5im * λ, "σ-⋅", j, "σ+⋅", j + 1
+        op += +0.5im * λ, "σ+⋅", j, "σ-⋅", j + 1
+        op += -0.5im * λ, "⋅σ-", j, "⋅σ+", j + 1
+        op += -0.5im * λ, "⋅σ+", j, "⋅σ-", j + 1
+    end
+    for j in 1:N
+        op += -0.5im * ε, "σz⋅", j
+        op += +0.5im * ε, "⋅σz", j
+    end
+    return op
+end
+
+avgn(ε, T) = T == 0 ? 0 : (ℯ^(ε / T) - 1)^(-1)
+
+"""
+    dissipator_symmetric(n, excitation_energy, spin_damping_coefficient, temperature)
+
+Return the dissipator ``D(ρ) ∝ σˣ ρ (σˣ)† - ½ {(σˣ)† σˣ, ρ}`` on site `n`.
+"""
+function dissipator_symmetric(
+        n::Integer,
+        excitation_energy::Real,
+        spin_damping_coefficient::Real,
+        temperature::Real,
+    )
+    # TODO: move the ξ constant out of the function.
+    ε = excitation_energy
+    κ = spin_damping_coefficient
+    T = temperature
+    ξ = κ * (1 + 2avgn(ε, T))
+
+    op = OpSum()
+    op += +ξ, "σx⋅ * ⋅σx", n
+    op += -ξ, "Id", n
+    return op
+end

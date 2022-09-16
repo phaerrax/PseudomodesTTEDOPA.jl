@@ -31,6 +31,7 @@ export allequal,
        filenamett,
        gellmannbasis,
        gellmannmatrix,
+       groupresults,
        #isjson,
        levels,
        #linkdims,
@@ -72,7 +73,10 @@ export twositeoperators,
        evolve,
        fermioncurrent,
        forwardflux,
-       backwardflux
+       backwardflux,
+       dissipator_symmetric,
+       lindbladian_xy,
+       hamiltonian_xy
 
 include("operators.jl")
 
