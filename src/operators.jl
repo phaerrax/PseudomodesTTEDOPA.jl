@@ -396,3 +396,32 @@ function dissipator_symmetric(
     op += -ξ, "Id", n
     return op
 end
+
+"""
+    dissipator_asymmetric(n, frequency, damping_coefficient, temperature)
+
+Return the dissipator ``D(ρ) = γ⁻(σ⁻ρσ⁺ - ½ {σ⁺σ⁻, ρ}) + γ⁺(σ⁺ρσ⁻ - ½ {σ⁻σ⁺, ρ})`` on
+site `n`.
+"""
+function dissipator_asymmetric(
+        n::Integer,
+        excitation_energy::Real,
+        spin_damping_coefficient::Real,
+        temperature::Real,
+    )
+    ω = excitation_energy
+    γ = spin_damping_coefficient
+    T = temperature
+
+    γ⁺ = γ * avgn(ω, T)
+    γ⁻ = γ * (1 + avgn(ω, T))
+
+    op = OpSum()
+    op +=     γ⁻, "σ-⋅ * ⋅σ+", n
+    op += -0.5γ⁻, "σ+⋅ * σ-⋅", n
+    op += -0.5γ⁻, "⋅σ- * ⋅σ+", n
+    op +=     γ⁺, "σ+⋅ * ⋅σ-", n
+    op += -0.5γ⁺, "σ-⋅ * σ+⋅", n
+    op += -0.5γ⁺, "⋅σ+ * ⋅σ-", n
+    return op
+end

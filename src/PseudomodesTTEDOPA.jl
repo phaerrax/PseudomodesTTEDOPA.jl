@@ -75,6 +75,7 @@ export twositeoperators,
        forwardflux,
        backwardflux,
        dissipator_symmetric,
+       dissipator_asymmetric,
        lindbladian_xy,
        hamiltonian_xy
 
