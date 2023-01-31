@@ -122,7 +122,9 @@ while `η` is the integral of `J` over its support.
 """
 function chainmapcoefficients(J::Function, support, L::Int; kwargs...)
   measure = PolyChaos.Measure("measure", J, (support[begin], support[end]), false, Dict())
-  poly = PolyChaos.OrthoPoly("poly", L, measure; kwargs...)
+  # We give `lanczos` as a default discretization method; if the user explicitly supplies a
+  # discretization within the keyword arguments, then this default is overwritten.
+  poly = PolyChaos.OrthoPoly("poly", L, measure; discretization=lanczos, kwargs...)
   # In order to build a series of L oscillators, we need the αᵢ and βᵢ
   # coefficients from i=0 to i=L-1, that means α[1:L] and β[1:L].
   # From these, the local frequencies Ωᵢ and the coupling constants κᵢ of
