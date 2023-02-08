@@ -212,12 +212,12 @@ end
 ITensors.op(::OpName"⋅Id", st::SiteType"HvS=1/2") = ITensors.op(OpName("Id"), st)
 ITensors.op(::OpName"Id⋅", st::SiteType"HvS=1/2") = ITensors.op(OpName("Id"), st)
 
-Num = [1 0; 0 0] # Num == σ⁺σ⁻
-function ITensors.op(s::OpName"N⋅", ::SiteType"HvS=1/2")
-  return vec(x -> Num*x, gellmannbasis(2))
+# N == σ⁺σ⁻
+function ITensors.op(::OpName"N⋅", ::SiteType"HvS=1/2")
+  return vec(x -> [1 0; 0 0] * x, gellmannbasis(2))
 end
 function ITensors.op(::OpName"⋅N", ::SiteType"HvS=1/2")
-  return vec(x -> x*Num, gellmannbasis(2))
+  return vec(x -> x * [1 0; 0 0], gellmannbasis(2))
 end
 
 function ITensors.op(s::OpName"σ+⋅", ::SiteType"HvS=1/2")
