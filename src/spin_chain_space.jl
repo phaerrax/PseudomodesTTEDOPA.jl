@@ -209,6 +209,8 @@ end
 function ITensors.op(::OpName"Id", ::SiteType"HvS=1/2")
   return vec(identity, gellmannbasis(2))
 end
+ITensors.op(::OpName"⋅Id", st::SiteType"HvS=1/2") = ITensors.op(OpName("Id"), st)
+ITensors.op(::OpName"Id⋅", st::SiteType"HvS=1/2") = ITensors.op(OpName("Id"), st)
 
 Num = [1 0; 0 0] # Num == σ⁺σ⁻
 function ITensors.op(s::OpName"N⋅", ::SiteType"HvS=1/2")

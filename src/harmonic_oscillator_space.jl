@@ -348,6 +348,8 @@ end
 function ITensors.op(::OpName"Id", ::SiteType"HvOsc"; dim=2)
   return vec(identity, gellmannbasis(dim))
 end
+ITensors.op(::OpName"⋅Id", st::SiteType"HvOsc"; kwargs...) = ITensors.op(OpName("Id"), st; kwargs...)
+ITensors.op(::OpName"Id⋅", st::SiteType"HvOsc"; kwargs...) = ITensors.op(OpName("Id"), st; kwargs...)
 
 function ITensors.op(::OpName"⋅a+", ::SiteType"HvOsc"; dim=2)
   return vec(x -> x*a⁺(dim), gellmannbasis(dim))
