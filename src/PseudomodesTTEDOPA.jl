@@ -9,7 +9,6 @@ using JSON
 using LinearAlgebra
 using Measures
 using Observers
-using Plots
 using PolyChaos
 using ProgressMeter
 using QuadGK
@@ -23,7 +22,6 @@ export allequal,
        #canonicalmatrix,
        chain,
        chop,
-       readablecolours,
        consecutivepairs,
        construct_step_list,
        disablegrifqtech,
@@ -42,12 +40,6 @@ export allequal,
        vonneumannentropy
 
 include("utils.jl")
-
-export groupplot,
-       unifiedlogplot,
-       unifiedplot
-
-include("deprecated.jl")
 
 export chain_L1_state,
        chain_basis_states,
