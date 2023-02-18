@@ -59,7 +59,7 @@ end
 # Space of harmonic oscillators
 # =============================
 
-alias(::SiteType"Osc") = SiteType"Qudit"()
+ITensors.alias(::SiteType"Osc") = SiteType"Qudit"()
 
 """
     ITensors.space(st::SiteType"Osc";
@@ -72,43 +72,52 @@ Create the Hilbert space for a site of type "Osc".
 
 Optionally specify the conserved symmetries and their quantum number labels.
 """
-ITensors.space(st::SiteType"Osc"; kwargs...) = space(alias(st); kwargs...)
+ITensors.space(st::SiteType"Osc"; kwargs...) = space(ITensors.alias(st); kwargs...)
 
-# States
-# ------
+# Forward "Osc" definitions to "Qudit" states.
+# This way each state, operator and so on defined for the "Qudit" SiteType is already
+# available for the "Osc" type.
+ITensors.val(vn::ValName; st::SiteType"Osc") = val(vn, ITensors.alias(st))
 
-# Generic function that forwards "Osc" state definitions to "Qudit" states.
-# The available states are therefore the same between the two SiteTypes.
-ITensors.state(sn::StateName, st::SiteType"Osc", s::Index) = state(sn, alias(st), s)
+function ITensors.state(sn::StateName, st::SiteType"Osc", s::Index; kwargs...)
+    return state(sn, ITensors.alias(st), s; kwargs...)
+end
+
+function ITensors.op(on::OpName, st::SiteType"Osc", dims::Int...; kwargs...)
+    return op(on, ITensors.alias(st), dims...; kwargs...)
+end
+
+# ITensors.op functions all require an additional parameter, the dimension: for this reason,
+# we need to compute ITensors.dim.(rs), i.e. the dimensions of the Indices of the operator,
+# and append them to the function arguments.
+function ITensors.op(
+        on::OpName, st::SiteType"Osc", s1::Index, s_tail::Index...; kwargs...
+    )
+    rs = reverse((s1, s_tail...))
+    dims = ITensors.dim.(rs)
+    opmat = ITensors.op(on, st, dims...; kwargs...)
+    return ITensors.itensor(opmat, prime.(rs)..., dag.(rs)...)
+end
 
 # Operators
 # ---------
-
-# When we call
-#   op(name::AbstractString, s::Index...; kwargs...)
-# the following functions are called by the library (in this order):
-#   op(::OpName, ::SiteType, ::Index; kwargs...)
-#   op(::OpName, ::SiteType; kwargs...)
-# By defining the following function, we place ourselves before the first of
-# these two calls, "intercepting" the process so that we can add the dimension
-# of the state to the keyword arguments; then we call `op` again and resume
-# the normal execution, with the new kwargs.
-# We also need to wrap the result in an `itensor` object so that the operator
-# is really an ITensor (see for example src/physics/site_types/qudit.jl:73)
-# since the custom `op` function we define below just return matrices.
-function ITensors.op(on::OpName, st::SiteType"Osc", s::Index; kwargs...)
-  return itensor(op(on, st; dim=ITensors.dim(s), kwargs...), s', dag(s))
+function ITensors.op(::OpName"Asum", st::SiteType"Osc", d::Int)
+    return ITensors.op(OpName("A"), st, d) + ITensors.op(OpName("Adag"), st, d)
+end
+function ITensors.op(on::OpName"X", st::SiteType"Osc", d::Int)
+    return ITensors.op(OpName("Asum"), st, d) / sqrt(2)
+end
+function ITensors.op(on::OpName"Y", st::SiteType"Osc", d::Int)
+    return im/sqrt(2)*(ITensors.op(OpName("Adag"), st, d) - ITensors.op(OpName("A"), st, d))
 end
 
-ITensors.op(::OpName"a+", ::SiteType"Osc"; dim=2) = a⁺(dim)
-ITensors.op(::OpName"a-", ::SiteType"Osc"; dim=2) = a⁻(dim)
-ITensors.op(::OpName"plus", st::SiteType"Osc"; kwargs...) = ITensors.op(OpName("a+"), st; kwargs...)
-ITensors.op(::OpName"minus", st::SiteType"Osc"; kwargs...) = ITensors.op(OpName("a-"), st; kwargs...)
+ITensors.alias(::OpName"a-") = OpName"A"()
+ITensors.alias(::OpName"a+") = OpName"Adag"()
+ITensors.alias(::OpName"asum") = OpName"Asum"()
 
-ITensors.op(::OpName"Id", ::SiteType"Osc"; dim=2) = id(dim)
-ITensors.op(::OpName"N", ::SiteType"Osc"; dim=2) = num(dim)
-ITensors.op(::OpName"X", ::SiteType"Osc"; dim=2) = a⁻(dim) + a⁺(dim)
-ITensors.op(::OpName"Y", ::SiteType"Osc"; dim=2) = im*(a⁻(dim) - a⁺(dim))
+ITensors.op(on::OpName"a+", st::SiteType"Osc", d::Int) = ITensors.op(ITensors.alias(on), st, d)
+ITensors.op(on::OpName"a-", st::SiteType"Osc", d::Int) = ITensors.op(ITensors.alias(on), st, d)
+ITensors.op(on::OpName"asum", st::SiteType"Osc", d::Int) = ITensors.op(ITensors.alias(on), st, d)
 
 # Space of harmonic oscillators (vectorised)
 # ==========================================
