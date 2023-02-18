@@ -51,13 +51,19 @@ export chain_L1_state,
 
 include("spin_chain_space.jl")
 
-export mixedlindbladminus,
-       mixedlindbladplus,
-       osc_levels_proj,
+export osc_levels_proj,
        oscdimensions,
        parse_init_state_osc
 
 include("harmonic_oscillator_space.jl")
+
+export dissipator_loss,
+       dissipator_gain,
+       dissipator,
+       mixedlindbladplus,
+       mixedlindbladminus
+
+include("site_types/vectorized_oscillator.jl")
 
 export twositeoperators,
        localop,
@@ -78,5 +84,10 @@ export getchaincoefficients,
        chainmapcoefficients
 
 include("tedopa.jl")
+
+export mixedlindbladminus,
+       mixedlindbladplus
+
+include("deprecated.jl")
 
 end
