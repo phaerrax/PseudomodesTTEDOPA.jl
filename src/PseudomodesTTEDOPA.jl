@@ -34,6 +34,8 @@ export allequal,
        levels,
        #linkdims,
        load_parameters,
+       oscdimensions,
+       parse_init_state_osc,
        partialtrace,
        #sitetypes,
        vec,
@@ -51,11 +53,7 @@ export chain_L1_state,
 
 include("spin_chain_space.jl")
 
-export osc_levels_proj,
-       oscdimensions,
-       parse_init_state_osc
-
-include("harmonic_oscillator_space.jl")
+include("site_types/oscillator.jl")
 
 export dissipator_loss,
        dissipator_gain,

@@ -160,6 +160,56 @@ function canonicalbasis(dim)
           for (i, j) ∈ [Base.product(1:dim, 1:dim)...]]
 end
 
+# Oscillator space utilities
+# ==========================
+
+"""
+	oscdimensions(N, basedim, decay)
+
+Compute a decreasing sequence of length `N` where the first two elements are
+equal to `basedim` and the following ones are given by
+`floor(2 + basedim * ℯ^(-decay * n))`.
+
+Useful to determine the dimensions of oscillator sites in a TEDOPA chain.
+"""
+function oscdimensions(length, basedim, decay)
+  f(j) = 2 + basedim * ℯ^(-decay * j)
+  return [basedim; basedim; (Int ∘ floor ∘ f).(3:length)]
+end
+
+"""
+    parse_init_state_osc(site::Index{Int64},
+                         statename::String;
+                         <keyword arguments>)
+
+Return an MPS representing a particular state of a harmonic oscillator, given
+by the string `statename`:
+
+- "thermal" → thermal equilibrium state
+- "fockN"   → `N`-th eigenstate of the number operator (element of Fock basis)
+- "empty"   → alias for "fock0"
+
+The string is case-insensitive. Other parameters required to build the state
+(e.g. frequency, temperature) may be supplied as keyword arguments.
+"""
+function parse_init_state_osc(site::Index{Int64}, statename::String; kwargs...)
+  # TODO: maybe remove "init" from title? It is a generic state, after all.
+  statename = lowercase(statename)
+  if statename == "thermal"
+    s = state(site, "ThermEq"; kwargs...)
+  elseif occursin(r"^fock", statename)
+    j = parse(Int, replace(statename, "fock" => ""))
+    s = state(site, "$j")
+  elseif statename == "empty"
+    s = state(site, "0")
+  else
+    throw(DomainError(statename,
+                      "Unrecognised state name; please choose from "*
+                      "\"empty\", \"fockN\" or \"thermal\"."))
+  end
+  return MPS([s])
+end
+
 # (Von Neumann) Entropy
 # =====================
 """
@@ -318,6 +368,16 @@ end
 
 # MPS and MPO utilities
 # =====================
+
+"""
+    vectrace(vecρ::MPS, s::Vector{Index{Int64}})
+
+Return the trace of the density matrix ρ which is vectorized and encoded in the
+given MPS `vecρ` on sites `s`.
+"""
+function vectrace(vecρ::MPS, s::Vector{Index{Int64}})
+    return dot(MPS("vecId", s), vecρ)
+end
 
 """
     linkdims(m::Union{MPS, MPO})
