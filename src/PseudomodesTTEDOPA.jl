@@ -53,6 +53,8 @@ export chain_L1_state,
 
 include("spin_chain_space.jl")
 
+include("site_types/vectorized_spinhalf.jl")
+
 include("site_types/oscillator.jl")
 
 export dissipator_loss,
