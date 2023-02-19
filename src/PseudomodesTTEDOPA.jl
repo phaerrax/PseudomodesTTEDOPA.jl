@@ -39,22 +39,22 @@ export allequal,
        partialtrace,
        #sitetypes,
        vec,
-       vonneumannentropy
-
-include("utils.jl")
-
-export chain_L1_state,
+       vonneumannentropy,
+       chain_L1_state,
        chain_basis_states,
        level_subspace_proj,
        parse_init_state,
        parse_spin_state,
-       single_ex_state,
-       spin_current_op_list
+       single_ex_state
 
-include("spin_chain_space.jl")
+include("utils.jl")
 
+export spin_current_op_list
+
+include("current_operators.jl")
+
+include("site_types/spinhalf.jl")
 include("site_types/vectorized_spinhalf.jl")
-
 include("site_types/oscillator.jl")
 
 export dissipator_loss,
