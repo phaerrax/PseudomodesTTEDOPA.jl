@@ -425,3 +425,57 @@ function dissipator_asymmetric(
     op += -0.5γ⁺, "⋅σ+ * ⋅σ-", n
     return op
 end
+
+# Easy construction of the unitary part of the GKSL equation
+# ----------------------------------------------------------
+function makeopsumpairs(args...)
+    isodd(length(args)) &&
+        throw(error("Cannot make pairs out of an odd number of arguments."))
+    return [(args[i], args[i + 1]) for i in eachindex(args)[1:2:(end - 1)]]
+end
+
+"""
+    gkslcommutator(operators::Tuple{String,Int}...)
+
+Given one or more tuples `(a1, n1), (a2, n2), …`, return an OpSum representing the operation
+``x ↦ -i[A_1 A_2 …, x]`` where ``A_i`` is an operator which consists of `ai` at site `ni`
+and the identity elsewhere. The string `a1` must be an existing ITensor OpName whose
+variants `a1⋅` and `⋅a1` are defined (this function, however, doesn't perform any checks).
+
+# Examples
+```julia-repl
+julia> gkslcommutator(("σ+", 1), ("σ-", 2))
+sum(
+  0.0 - 1.0im σ+⋅(1,) σ-⋅(2,)
+  0.0 + 1.0im ⋅σ+(1,) ⋅σ-(2,)
+)
+```
+"""
+function gkslcommutator(operators::Tuple{String,Int}...)
+    l = OpSum()
+    opnames = first.(operators)
+    sites = last.(operators)
+    l += (-im, collect(Iterators.flatten(zip(opnames .* "⋅", sites)))...,)
+    l += (+im, collect(Iterators.flatten(zip("⋅" .* opnames, sites)))...,)
+    return l
+end
+
+"""
+    gkslcommutator(args...)
+
+Given a sequence `a1, n1, a2, n2, …` where each `ai` is a `String` and each `ni` is an
+`Int`, return an OpSum representing the operation ``x ↦ -i[A_1 A_2 …, x]`` where ``A_i``
+is an operator which consists of `ai` at site `ni` and the identity elsewhere. The string
+`a1` must be an existing ITensor OpName whose variants `a1⋅` and `⋅a1` are defined
+(this function, however, doesn't perform any checks).
+
+# Examples
+```julia-repl
+julia> gkslcommutator("σ+", 1, "σ-", 2)
+sum(
+  0.0 - 1.0im σ+⋅(1,) σ-⋅(2,)
+  0.0 + 1.0im ⋅σ+(1,) ⋅σ-(2,)
+)
+```
+"""
+gkslcommutator(args...) = gkslcommutator(makeopsumpairs(args...)...)

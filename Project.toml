@@ -1,7 +1,7 @@
 name = "PseudomodesTTEDOPA"
 uuid = "79a75d10-d622-4972-b86a-039507c8d45b"
 authors = ["Davide Ferracin <davide.ferracin@protonmail.com> and contributors"]
-version = "0.3.0"
+version = "0.3.1"
 
 [deps]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"

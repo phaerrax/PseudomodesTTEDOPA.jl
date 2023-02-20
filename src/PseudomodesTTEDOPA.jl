@@ -69,7 +69,8 @@ export twositeoperators,
     dissipator_symmetric,
     dissipator_asymmetric,
     lindbladian_xy,
-    hamiltonian_xy
+    hamiltonian_xy,
+    gkslcommutator
 
 include("operators.jl")
 
