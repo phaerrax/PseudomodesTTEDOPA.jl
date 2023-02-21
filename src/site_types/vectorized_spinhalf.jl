@@ -27,22 +27,27 @@ ITensors.space(st::SiteType"vecS=1/2") = ITensors.space(ITensors.alias(st))
 ITensors.val(vn::ValName, st::SiteType"HvS=1/2") = ITensors.val(vn, ITensors.alias(st))
 ITensors.val(vn::ValName, st::SiteType"vecS=1/2") = ITensors.val(vn, ITensors.alias(st))
 
-function ITensors.state(sn::StateName, st::SiteType"vecS=1/2", s::Index; kwargs...)
-    return ITensors.state(sn, ITensors.alias(st), s; kwargs...)
+# !
+# We need to replicate the signatures of the functions below: since the states are defined
+# using ITensors.state(::StateName, ::SiteType"vS=1/2"), the aliasing function must follow
+# the same structure, otherwise it doesn't pick up the definitions for "vS=1/2".
+# The same goes for the operators.
+function ITensors.state(sn::StateName, st::SiteType"vecS=1/2"; kwargs...)
+    return ITensors.state(sn, ITensors.alias(st); kwargs...)
 end
-function ITensors.state(sn::StateName, st::SiteType"HvS=1/2", s::Index; kwargs...)
-    return ITensors.state(sn, ITensors.alias(st), s; kwargs...)
+function ITensors.state(sn::StateName, st::SiteType"HvS=1/2"; kwargs...)
+    return ITensors.state(sn, ITensors.alias(st); kwargs...)
 end
 
 function ITensors.op(
-    on::OpName, st::SiteType"vecS=1/2", s1::Index, s_tail::Index...; kwargs...
+    on::OpName, st::SiteType"vecS=1/2"; kwargs...
 )
-    return ITensors.op(on, ITensors.alias(st), s1, s_tail...; kwargs...)
+    return ITensors.op(on, ITensors.alias(st); kwargs...)
 end
 function ITensors.op(
-    on::OpName, st::SiteType"HvS=1/2", s1::Index, s_tail::Index...; kwargs...
+    on::OpName, st::SiteType"HvS=1/2"; kwargs...
 )
-    return ITensors.op(on, ITensors.alias(st), s1, s_tail...; kwargs...)
+    return ITensors.op(on, ITensors.alias(st); kwargs...)
 end
 
 # States
@@ -105,7 +110,7 @@ function ITensors.state(::StateName"vecminus", ::SiteType"vS=1/2")
     return vec(ITensors.op(OpName("S-"), SiteType("S=1/2")), gellmannbasis(2))
 end
 function ITensors.state(::StateName"vecN", st::SiteType"vS=1/2")
-    return ITensors.state(OpName("vN"), st)
+    return ITensors.state(StateName("vN"), st)
 end
 
 # Operators acting on vectorised spins
