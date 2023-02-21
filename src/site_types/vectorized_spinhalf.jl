@@ -112,6 +112,9 @@ end
 function ITensors.state(::StateName"vecN", st::SiteType"vS=1/2")
     return ITensors.state(StateName("vN"), st)
 end
+function ITensors.state(::StateName"vecId", st::SiteType"vS=1/2")
+    return ITensors.state(StateName("vId"), st)
+end
 
 # Operators acting on vectorised spins
 # ------------------------------------
