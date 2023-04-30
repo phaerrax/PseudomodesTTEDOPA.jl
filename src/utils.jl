@@ -1,10 +1,10 @@
 """
-    groupresults(obs::Observer, name::String)
+    groupresults(obs::AbstractObserver, name::String)
 
 If the observer returns an array of values, rearrange the results in a big matrix.
 """
-function groupresults(obs::Observer, name::String)
-    return mapreduce(permutedims, vcat, results(obs, name))
+function groupresults(obs::AbstractObserver, name::String)
+    return mapreduce(permutedims, vcat, obs[!, name])
 end
 
 """
