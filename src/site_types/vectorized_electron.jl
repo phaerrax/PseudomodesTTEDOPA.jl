@@ -69,6 +69,9 @@ ITensors.op(::OpName"⋅Ndn", ::SiteType"vElectron") = postmul(elop("Ndn"))
 ITensors.op(::OpName"Ntot⋅", ::SiteType"vElectron") = premul(elop("Ntot"))
 ITensors.op(::OpName"⋅Ntot", ::SiteType"vElectron") = postmul(elop("Ntot"))
 
+ITensors.op(::OpName"NupNdn⋅", ::SiteType"vElectron") = premul(elop("Nup") * elop("Ndn"))
+ITensors.op(::OpName"⋅NupNdn", ::SiteType"vElectron") = postmul(elop("Nup") * elop("Ndn"))
+
 # Jordan-Wigner string operator
 ITensors.op(::OpName"F⋅", ::SiteType"vElectron") = premul(elop("F"))
 ITensors.op(::OpName"⋅F", ::SiteType"vElectron") = postmul(elop("F"))
