@@ -229,8 +229,8 @@ function dissipator(n::Int, frequency::Real, temperature::Real)
     if temperature == 0
         return dissipator_loss(n)
     else
-        # Use `expm(x)` instead of `e^x-1` for better precision.
-        avgn = 1 / expm(frequency / temperature)
+        # Use `expm1(x)` instead of `e^x-1` for better precision.
+        avgn = 1 / expm1(frequency / temperature)
         return (avgn + 1) * dissipator_loss(n) + avgn * dissipator_gain(n)
     end
 end
