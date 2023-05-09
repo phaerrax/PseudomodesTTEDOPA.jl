@@ -57,11 +57,15 @@ end
 #                   ⎣0⎦
 # "Dn" = ê₋ ⊗ ê₋' = ⎡0⎤ ⊗ [0 1]
 #                   ⎣1⎦
-function ITensors.state(::StateName"Up", ::SiteType"vS=1/2")
-    return vec(kron([1; 0], [1; 0]'), gellmannbasis(2))
+# We don't use them explicitly, however, but we refer to how ITensors implements
+# them; this way, we are sure that the operators act correctly on these states.
+function ITensors.state(sn::StateName"Up", ::SiteType"vS=1/2")
+    v = ITensors.state(sn, SiteType("S=1/2"))
+    return vec(kron(v, v'), gellmannbasis(2))
 end
 function ITensors.state(::StateName"Dn", ::SiteType"vS=1/2")
-    return vec(kron([0; 1], [0; 1]'), gellmannbasis(2))
+    v = ITensors.state(sn, SiteType("S=1/2"))
+    return vec(kron(v, v'), gellmannbasis(2))
 end
 
 # States representing vectorised operators
