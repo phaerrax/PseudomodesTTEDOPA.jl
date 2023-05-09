@@ -109,22 +109,22 @@ end
 # States representing vectorised operators
 # ----------------------------------------
 function ITensors.state(::StateName"vAdag", ::SiteType"vOsc", d::Int)
-    return vec(ITensors.op("Adag", SiteType("Osc"), d), gellmannbasis(d))
+    return vec(ITensors.op(OpName("Adag"), SiteType("Osc"), d), gellmannbasis(d))
 end
 function ITensors.state(::StateName"vA", ::SiteType"vOsc", d::Int)
-    return vec(ITensors.op("A", SiteType("Osc"), d), gellmannbasis(d))
+    return vec(ITensors.op(OpName("A"), SiteType("Osc"), d), gellmannbasis(d))
 end
 function ITensors.state(::StateName"vN", ::SiteType"vOsc", d::Int)
-    return vec(ITensors.op("N", SiteType("Osc"), d), gellmannbasis(d))
+    return vec(ITensors.op(OpName("N"), SiteType("Osc"), d), gellmannbasis(d))
 end
 function ITensors.state(::StateName"vId", ::SiteType"vOsc", d::Int)
-    return vec(ITensors.op("Id", SiteType("Osc"), d), gellmannbasis(d))
+    return vec(ITensors.op(OpName("Id"), SiteType("Osc"), d), gellmannbasis(d))
 end
 function ITensors.state(::StateName"vX", ::SiteType"vOsc", d::Int)
-    return vec(ITensors.op("X", SiteType("Osc"), d), gellmannbasis(d))
+    return vec(ITensors.op(OpName("X"), SiteType("Osc"), d), gellmannbasis(d))
 end
 function ITensors.state(::StateName"vY", ::SiteType"vOsc", d::Int)
-    return vec(ITensors.op("Y", SiteType("Osc"), d), gellmannbasis(d))
+    return vec(ITensors.op(OpName("Y"), SiteType("Osc"), d), gellmannbasis(d))
 end
 
 # Aliases (for backwards compatibility)
