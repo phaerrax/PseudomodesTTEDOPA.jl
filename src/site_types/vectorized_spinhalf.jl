@@ -177,3 +177,10 @@ end
 function ITensors.op(::OpName"⋅σz", ::SiteType"vS=1/2")
     return vec(x -> x * ITensors.op(OpName("σz"), SiteType("S=1/2")), gellmannbasis(2))
 end
+
+function ITensors.op(s::OpName"F⋅", ::SiteType"vS=1/2")
+    return vec(x -> ITensors.op(OpName("F"), SiteType("S=1/2")) * x, gellmannbasis(2))
+end
+function ITensors.op(::OpName"⋅F", ::SiteType"vS=1/2")
+    return vec(x -> x * ITensors.op(OpName("F"), SiteType("S=1/2")), gellmannbasis(2))
+end
