@@ -75,6 +75,9 @@ export twositeoperators,
 
 include("operators.jl")
 
+include("spin_chain.jl")
+include("closure.jl")
+
 export getchaincoefficients, thermalisedJ, chainmapcoefficients
 
 include("tedopa.jl")
