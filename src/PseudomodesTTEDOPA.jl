@@ -5,6 +5,7 @@ using CSV
 using Combinatorics
 using DataFrames
 using ITensors
+using IterTools
 using JSON
 using LinearAlgebra
 using Measures
@@ -43,7 +44,10 @@ export allequal,
     level_subspace_proj,
     parse_init_state,
     parse_spin_state,
-    single_ex_state
+    single_ex_state,
+    sitenumber,
+    jwstring
+
 
 include("utils.jl")
 
