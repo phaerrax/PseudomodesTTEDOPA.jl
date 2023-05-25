@@ -63,7 +63,7 @@ function ITensors.state(sn::StateName"Up", ::SiteType"vS=1/2")
     v = ITensors.state(sn, SiteType("S=1/2"))
     return vec(kron(v, v'), gellmannbasis(2))
 end
-function ITensors.state(::StateName"Dn", ::SiteType"vS=1/2")
+function ITensors.state(sn::StateName"Dn", ::SiteType"vS=1/2")
     v = ITensors.state(sn, SiteType("S=1/2"))
     return vec(kron(v, v'), gellmannbasis(2))
 end
