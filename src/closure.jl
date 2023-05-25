@@ -1,12 +1,5 @@
 export Closure, closure
-export freq,
-       innercoup,
-       outercoup,
-       damp,
-       freqs,
-       innercoups,
-       outercoups,
-       damps
+export freq, innercoup, outercoup, damp, freqs, innercoups, outercoups, damps
 export closure_op, filled_closure_op
 
 """
@@ -20,12 +13,10 @@ struct Closure
     innercoupling
     outercoupling
     damping
-    function Closure(ω::Vector{<:Real}, γ::Vector{<:Real}, g::Vector{<:Real}, ζ::Vector{<:Complex})
-        if (
-            length(ω) - 1 != length(g) ||
-            length(ω) != length(γ) ||
-            length(ω) != length(ζ)
-        )
+    function Closure(
+        ω::Vector{<:Real}, γ::Vector{<:Real}, g::Vector{<:Real}, ζ::Vector{<:Complex}
+    )
+        if (length(ω) - 1 != length(g) || length(ω) != length(γ) || length(ω) != length(ζ))
             error("Lengths of input parameters do not match.")
         end
         return new(ω, g, ζ, γ)
@@ -43,10 +34,7 @@ universal parameter set given by `α`, `β` and `w`, which are assumed to be two
 with the real parts of the parameters in the first one and the imaginary parts in the
 second.
 """
-function closure(
-        Ω::Real, K::Real,
-        α::Matrix{<:Real}, β::Matrix{<:Real}, w::Matrix{<:Real}
-)
+function closure(Ω::Real, K::Real, α::Matrix{<:Real}, β::Matrix{<:Real}, w::Matrix{<:Real})
     return closure(
         Ω, K, α[:, 1] .+ im .* α[:, 2], β[:, 1] .+ im .* β[:, 2], w[:, 1] .+ im .* w[:, 2]
     )
@@ -89,6 +77,8 @@ innercoup(mc::Closure, j::Int) = mc.innercoupling[j]
 outercoup(mc::Closure, j::Int) = mc.outercoupling[j]
 damp(mc::Closure, j::Int) = mc.damping[j]
 
+closure_op(::SiteType, ::Closure, ::Vector{<:Index}, ::Int) = nothing
+
 """
     closure_op(mc::Closure, sites::Vector{<:Index}, chain_edge_site::Int)
 
@@ -97,6 +87,29 @@ Return an OpSum object encoding the Markovian closure operators with parameters 
 `chain_edge_site`.
 This closure replaces a chain starting from an empty state.
 """
+
+function closure_op(mc::Closure, sites::Vector{<:Index}, chain_edge_site::Int)
+    stypes = sitetypes(first(sites))
+    for st in stypes
+        # Check if all sites have this type (otherwise skip this tag).
+        if all(i -> st in sitetypes(i), sites)
+            # If the type is shared, then try calling the function with it.
+            ℓ = closure_op(st, mc, sitenumber.(sites), chain_edge_site)
+            # If the result is something, return that result.
+            if !isnothing(ℓ)
+                return ℓ
+            end
+        end
+        # Otherwise, try again with another type from the initial ones.
+    end
+    # Return an error if no implementation is found for any type.
+    return throw(
+        ArgumentError(
+            "Overload of \"closure_op\" function not found for Index tags $(tags(sites[1]))"
+        ),
+    )
+end
+
 function closure_op(
     ::SiteType"vS=1/2", mc::Closure, sites::Vector{<:Index}, chain_edge_site::Int
 )
@@ -132,7 +145,9 @@ function closure_op(
     return ℓ
 end
 
-function closure_op(::SiteType"vElectron", mc::Closure, sites::Vector{<:Index}, chain_edge_site::Int)
+function closure_op(
+    ::SiteType"vElectron", mc::Closure, sites::Vector{<:Index}, chain_edge_site::Int
+)
     ℓ = OpSum()
     for (j, site) in enumerate(sitenumber.(sites))
         ℓ += freq(mc, j) * gkslcommutator("Ntot", site)
@@ -195,6 +210,8 @@ function closure_op(::SiteType"vElectron", mc::Closure, sites::Vector{<:Index}, 
     return ℓ
 end
 
+filled_closure_op(::SiteType, ::Closure, ::Vector{<:Index}, ::Int) = nothing
+
 """
     filled_closure_op(mc::Closure, sites::Vector{<:Index}, chain_edge_site::Int)
 
@@ -203,14 +220,37 @@ Return an OpSum object encoding the Markovian closure operators with parameters 
 `chain_edge_site`.
 This closure replaces a chain starting from a completely filled state.
 """
+function filled_closure_op(mc::Closure, sites::Vector{<:Index}, chain_edge_site::Int)
+    stypes = sitetypes(first(sites))
+    for st in stypes
+        # Check if all sites have this type (otherwise skip this tag).
+        if all(i -> st in sitetypes(i), sites)
+            # If the type is shared, then try calling the function with it.
+            ℓ = filled_closure_op(st, mc, sitenumber.(sites), chain_edge_site)
+            # If the result is something, return that result.
+            if !isnothing(ℓ)
+                return ℓ
+            end
+        end
+        # Otherwise, try again with another type from the initial ones.
+    end
+    # Return an error if no implementation is found for any type.
+    return throw(
+        ArgumentError(
+            "Overload of \"filled_closure_op\" function not found for " *
+            "Index tags $(tags(sites[1]))",
+        ),
+    )
+end
+
 function filled_closure_op(
-    ::SiteType"vS=1/2", mc::Closure, sites::Vector{<:Index}, chain_edge_site::Int
+    ::SiteType"vS=1/2", mc::Closure, sitenumbers::Vector{<:Int}, chain_edge_site::Int
 )
     ℓ = OpSum()
-    for (j, site) in enumerate(sitenumber.(sites))
+    for (j, site) in enumerate(sitenumbers)
         ℓ += freq(mc, j) * gkslcommutator("N", site)
     end
-    for (j, (site1, site2)) in enumerate(partition(sitenumber.(sites), 2, 1))
+    for (j, (site1, site2)) in enumerate(partition(sitenumbers, 2, 1))
         jws = jwstring(; start=site1, stop=site2)
         ℓ +=
             innercoup(mc, j) * (
@@ -218,7 +258,7 @@ function filled_closure_op(
                 gkslcommutator("σ+", site1, jws..., "σ-", site2)
             )
     end
-    for (j, site) in enumerate(sitenumber.(sites))
+    for (j, site) in enumerate(sitenumbers)
         jws = jwstring(; start=chain_edge_site, stop=site)
         ℓ += (
             outercoup(mc, j) * gkslcommutator("σ+", chain_edge_site, jws..., "σ-", site) +
@@ -227,7 +267,7 @@ function filled_closure_op(
         )
     end
 
-    for (j, site) in enumerate(sitenumber.(sites))
+    for (j, site) in enumerate(sitenumbers)
         # a† ρ a
         opstring = [repeat(["F⋅ * ⋅F"], site - 1); "σ+⋅ * ⋅σ-"]
         ℓ += (damp(mc, j), collect(Iterators.flatten(zip(opstring, 1:site)))...)
@@ -239,7 +279,9 @@ function filled_closure_op(
     return ℓ
 end
 
-function filled_closure_op(::SiteType"vElectron", mc::Closure, sites::Vector{<:Index}, chain_edge_site::Int)
+function filled_closure_op(
+    ::SiteType"vElectron", mc::Closure, sites::Vector{<:Index}, chain_edge_site::Int
+)
     ℓ = OpSum()
     for (j, site) in enumerate(sitenumber.(sites))
         ℓ += freq(mc, j) * gkslcommutator("Ntot", site)
