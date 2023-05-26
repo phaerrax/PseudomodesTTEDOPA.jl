@@ -91,6 +91,7 @@ Return an OpSum object encoding the Markovian closure operators with parameters 
 This closure replaces a chain starting from an empty state.
 """
 function closure_op(mc::Closure, sites::Vector{<:Index}, chain_edge_site::Int)
+    @assert length(mc) == length(sites)
     stypes = sitetypes(first(sites))
     for st in stypes
         # Check if all sites have this type (otherwise skip this tag).
@@ -230,6 +231,7 @@ This closure replaces a chain starting from an empty state.
 function closure_op_adjoint(
     mc::Closure, sites::Vector{<:Index}, chain_edge_site::Int, gradefactor::Int
 )
+    @assert length(mc) == length(sites)
     stypes = sitetypes(first(sites))
     for st in stypes
         # Check if all sites have this type (otherwise skip this tag).
@@ -349,10 +351,14 @@ function closure_op_adjoint(
 
         # c↑ₖ† X c↑ₖ = a↑ₖ† Fₖ₋₁ ⋯ F₁ X F₁ ⋯ Fₖ₋₁ a↑ₖ
         opstring = [repeat(["F⋅ * ⋅F"], site - 1); "Aup†⋅ * ⋅Aup"]
-        ℓ += (gradefactor * damp(mc, j), collect(Iterators.flatten(zip(opstring, 1:site)))...)
+        ℓ += (
+            gradefactor * damp(mc, j), collect(Iterators.flatten(zip(opstring, 1:site)))...
+        )
         # c↓ₖ† X c↓ₖ = a↓ₖ†Fₖ Fₖ₋₁ ⋯ F₁ X F₁ ⋯ Fₖ₋₁ Fₖa↓ₖ
         opstring = [repeat(["F⋅ * ⋅F"], site - 1); "Adn†F⋅ * ⋅FAdn"]
-        ℓ += (gradefactor * damp(mc, j), collect(Iterators.flatten(zip(opstring, 1:site)))...)
+        ℓ += (
+            gradefactor * damp(mc, j), collect(Iterators.flatten(zip(opstring, 1:site)))...
+        )
 
         # -½ (c↑ₖ† c↑ₖ ρ + ρ c↑ₖ† c↑ₖ) = -½ (a↑ₖ† a↑ₖ ρ + ρ a↑ₖ† a↑ₖ)
         ℓ += -0.5damp(mc, j), "Nup⋅", site
@@ -379,6 +385,7 @@ Return an OpSum object encoding the Markovian closure operators with parameters 
 This closure replaces a chain starting from a completely filled state.
 """
 function filled_closure_op(mc::Closure, sites::Vector{<:Index}, chain_edge_site::Int)
+    @assert length(mc) == length(sites)
     stypes = sitetypes(first(sites))
     for st in stypes
         # Check if all sites have this type (otherwise skip this tag).
@@ -521,13 +528,18 @@ Return an OpSum object encoding the Markovian closure operators with parameters 
 operator subject to the time evolution.
 This closure replaces a chain starting from a completely filled state.
 """
-function filled_closure_op_adjoint(mc::Closure, sites::Vector{<:Index}, chain_edge_site::Int, gradefactor::Int)
+function filled_closure_op_adjoint(
+    mc::Closure, sites::Vector{<:Index}, chain_edge_site::Int, gradefactor::Int
+)
+    @assert length(mc) == length(sites)
     stypes = sitetypes(first(sites))
     for st in stypes
         # Check if all sites have this type (otherwise skip this tag).
         if all(i -> st in sitetypes(i), sites)
             # If the type is shared, then try calling the function with it.
-            ℓ = filled_closure_op_adjoint(st, mc, sitenumber.(sites), chain_edge_site, gradefactor)
+            ℓ = filled_closure_op_adjoint(
+                st, mc, sitenumber.(sites), chain_edge_site, gradefactor
+            )
             # If the result is something, return that result.
             if !isnothing(ℓ)
                 return ℓ
@@ -545,7 +557,11 @@ function filled_closure_op_adjoint(mc::Closure, sites::Vector{<:Index}, chain_ed
 end
 
 function filled_closure_op_adjoint(
-    ::SiteType"vS=1/2", mc::Closure, sitenumbers::Vector{<:Int}, chain_edge_site::Int, gradefactor::Int
+    ::SiteType"vS=1/2",
+    mc::Closure,
+    sitenumbers::Vector{<:Int},
+    chain_edge_site::Int,
+    gradefactor::Int,
 )
     ℓ = OpSum()
     for (j, site) in enumerate(sitenumbers)
@@ -581,7 +597,11 @@ function filled_closure_op_adjoint(
 end
 
 function filled_closure_op_adjoint(
-    ::SiteType"vElectron", mc::Closure, sites::Vector{<:Index}, chain_edge_site::Int, gradefactor::Int
+    ::SiteType"vElectron",
+    mc::Closure,
+    sites::Vector{<:Index},
+    chain_edge_site::Int,
+    gradefactor::Int,
 )
     ℓ = OpSum()
     for (j, site) in enumerate(sitenumber.(sites))
@@ -602,14 +622,16 @@ function filled_closure_op_adjoint(
         jws = jwstring(; start=chain_edge_site, stop=site)
         # ζⱼ c↑₀† c↑ⱼ (0 = chain edge, j = pseudomode)
         ℓ +=
-            -outercoup(mc, j) * gkslcommutator("Aup†F", chain_edge_site, jws..., "Aup", site)
+            -outercoup(mc, j) *
+            gkslcommutator("Aup†F", chain_edge_site, jws..., "Aup", site)
         # conj(ζⱼ) c↑ⱼ† c↑₀
         ℓ +=
             conj(outercoup(mc, j)) *
             gkslcommutator("AupF", chain_edge_site, jws..., "Aup†", site)
         # ζⱼ c↓₀† c↓ⱼ
         ℓ +=
-            -outercoup(mc, j) * gkslcommutator("Adn†", chain_edge_site, jws..., "FAdn", site)
+            -outercoup(mc, j) *
+            gkslcommutator("Adn†", chain_edge_site, jws..., "FAdn", site)
         # conj(ζⱼ) c↓ⱼ† c↓₀
         ℓ +=
             conj(outercoup(mc, j)) *
@@ -626,10 +648,14 @@ function filled_closure_op_adjoint(
         #
         # c↑ₖ X c↑ₖ† = F₁ ⋯ Fₖ₋₁ a↑ₖ X a↑ₖ† Fₖ₋₁ ⋯ F₁
         opstring = [repeat(["F⋅ * ⋅F"], site - 1); "Aup⋅ * ⋅Aup†"]
-        ℓ += (gradefactor * damp(mc, j), collect(Iterators.flatten(zip(opstring, 1:site)))...)
+        ℓ += (
+            gradefactor * damp(mc, j), collect(Iterators.flatten(zip(opstring, 1:site)))...
+        )
         # c↓ₖ X c↓ₖ† = F₁ ⋯ Fₖ₋₁ Fₖa↓ₖ X a↓ₖ†Fₖ Fₖ₋₁ ⋯ F₁
         opstring = [repeat(["F⋅ * ⋅F"], site - 1); "FAdn⋅ * ⋅Adn†F"]
-        ℓ += (gradefactor * damp(mc, j), collect(Iterators.flatten(zip(opstring, 1:site)))...)
+        ℓ += (
+            gradefactor * damp(mc, j), collect(Iterators.flatten(zip(opstring, 1:site)))...
+        )
 
         # c↑ₖ c↑ₖ† = F₁ ⋯ Fₖ₋₁ a↑ₖ a↑ₖ† Fₖ₋₁ ⋯ F₁ =
         #          = F₁² ⋯ Fₖ₋₁² a↑ₖ a↑ₖ† =
