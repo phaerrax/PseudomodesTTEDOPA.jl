@@ -14,6 +14,8 @@ Return an OpSum object encoding the Hamiltonian part ``-i[H, –]`` of the GKSL 
 for a spin chain of frequencies `freqs` and coupling constants `coups`, on `sites`.
 """
 function spin_chain(freqs::Vector{<:Real}, coups::Vector{<:Real}, sites::Vector{<:Index})
+    @assert length(freqs) == length(coups) + 1
+    @assert length(sites) == length(freqs)
     stypes = sitetypes(first(sites))
     for st in stypes
         # Check if all sites have this type (otherwise skip this tag).
@@ -48,8 +50,8 @@ function spin_chain(
     end
 
     for (j, (site1, site2)) in enumerate(partition(sitenumbers, 2, 1))
-        h += coups[j + 1], "c†", site1, "c", site2
-        h += coups[j + 1], "c†", site2, "c", site1
+        h += coups[j], "c†", site1, "c", site2
+        h += coups[j], "c†", site2, "c", site1
     end
 
     return h
@@ -69,11 +71,11 @@ function spin_chain(
     end
 
     for (j, (site1, site2)) in enumerate(partition(sitenumbers, 2, 1))
-        h += coups[j + 1], "c†↓", site1, "c↓", site2
-        h += coups[j + 1], "c†↓", site2, "c↓", site1
+        h += coups[j], "c†↓", site1, "c↓", site2
+        h += coups[j], "c†↓", site2, "c↓", site1
 
-        h += coups[j + 1], "c†↑", site1, "c↑", site2
-        h += coups[j + 1], "c†↑", site2, "c↑", site1
+        h += coups[j], "c†↑", site1, "c↑", site2
+        h += coups[j], "c†↑", site2, "c↑", site1
     end
 
     return h
@@ -92,7 +94,7 @@ function spin_chain(
     for (j, (site1, site2)) in enumerate(partition(sitenumbers, 2, 1))
         jws = jwstring(; start=site1, stop=site2)
         ℓ +=
-            coups[j + 1] * (
+            coups[j] * (
                 gkslcommutator("σ+", site1, jws..., "σ-", site2) +
                 gkslcommutator("σ-", site1, jws..., "σ+", site2)
             )
@@ -112,10 +114,13 @@ function spin_chain(
     end
     for (j, (site1, site2)) in enumerate(partition(sitenumbers, 2, 1))
         jws = jwstring(; start=site1, stop=site2)
-        ℓ += +coups[j + 1] * gkslcommutator("Aup†F", site1, jws..., "Aup", site2)
-        ℓ += -coups[j + 1] * gkslcommutator("AupF", site1, jws..., "Aup†", site2)
-        ℓ += +coups[j + 1] * gkslcommutator("Adn†", site1, jws..., "FAdn", site2)
-        ℓ += -coups[j + 1] * gkslcommutator("Adn", site1, jws..., "FAdn†", site2)
+        ℓ +=
+            coups[j] * (
+                gkslcommutator("Aup†F", site1, jws..., "Aup", site2) -
+                gkslcommutator("AupF", site1, jws..., "Aup†", site2) +
+                gkslcommutator("Adn†", site1, jws..., "FAdn", site2) -
+                gkslcommutator("Adn", site1, jws..., "FAdn†", site2)
+            )
     end
     return ℓ
 end
@@ -140,6 +145,8 @@ GKSL equation for a spin chain of frequencies `freqs` and coupling constants `co
 function spin_chain_adjoint(
     freqs::Vector{<:Real}, coups::Vector{<:Real}, sites::Vector{<:Index}
 )
+    @assert length(freqs) == length(coups) + 1
+    @assert length(sites) == length(freqs)
     stypes = sitetypes(first(sites))
     for st in stypes
         # Check if all sites have this type (otherwise skip this tag).
