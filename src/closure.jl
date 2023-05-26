@@ -80,7 +80,7 @@ damp(mc::Closure, j::Int) = mc.damping[j]
 
 ############################################################################################
 
-closure_op(::SiteType, ::Closure, ::Vector{<:Index}, ::Int) = nothing
+closure_op(::SiteType, ::Closure, ::Vector{<:Int}, ::Int) = nothing
 
 """
     closure_op(mc::Closure, sites::Vector{<:Index}, chain_edge_site::Int)
@@ -114,13 +114,13 @@ function closure_op(mc::Closure, sites::Vector{<:Index}, chain_edge_site::Int)
 end
 
 function closure_op(
-    ::SiteType"vS=1/2", mc::Closure, sites::Vector{<:Index}, chain_edge_site::Int
+    ::SiteType"vS=1/2", mc::Closure, sitenumbers::Vector{<:Int}, chain_edge_site::Int
 )
     ℓ = OpSum()
-    for (j, site) in enumerate(sitenumber.(sites))
+    for (j, site) in enumerate(sitenumbers)
         ℓ += freq(mc, j) * gkslcommutator("N", site)
     end
-    for (j, (site1, site2)) in enumerate(partition(sitenumber.(sites), 2, 1))
+    for (j, (site1, site2)) in enumerate(partition(sitenumbers, 2, 1))
         jws = jwstring(; start=site1, stop=site2)
         ℓ +=
             innercoup(mc, j) * (
@@ -128,7 +128,7 @@ function closure_op(
                 gkslcommutator("σ+", site1, jws..., "σ-", site2)
             )
     end
-    for (j, site) in enumerate(sitenumber.(sites))
+    for (j, site) in enumerate(sitenumbers)
         jws = jwstring(; start=chain_edge_site, stop=site)
         ℓ += (
             outercoup(mc, j) * gkslcommutator("σ+", chain_edge_site, jws..., "σ-", site) +
@@ -137,7 +137,7 @@ function closure_op(
         )
     end
 
-    for (j, site) in enumerate(sitenumber.(sites))
+    for (j, site) in enumerate(sitenumbers)
         # a ρ a†
         opstring = [repeat(["F⋅ * ⋅F"], site - 1); "σ-⋅ * ⋅σ+"]
         ℓ += (damp(mc, j), collect(Iterators.flatten(zip(opstring, 1:site)))...)
@@ -149,13 +149,13 @@ function closure_op(
 end
 
 function closure_op(
-    ::SiteType"vElectron", mc::Closure, sites::Vector{<:Index}, chain_edge_site::Int
+    ::SiteType"vElectron", mc::Closure, sitenumbers::Vector{<:Int}, chain_edge_site::Int
 )
     ℓ = OpSum()
-    for (j, site) in enumerate(sitenumber.(sites))
+    for (j, site) in enumerate(sitenumbers)
         ℓ += freq(mc, j) * gkslcommutator("Ntot", site)
     end
-    for (j, (site1, site2)) in enumerate(partition(sitenumber.(sites), 2, 1))
+    for (j, (site1, site2)) in enumerate(partition(sitenumbers, 2, 1))
         # Add as many "F" string operator as needed.
         jws = jwstring(; start=site1, stop=site2)
         ℓ +=
@@ -166,7 +166,7 @@ function closure_op(
                 gkslcommutator("Adn", site1, jws..., "FAdn†", site2)
             )
     end
-    for (j, site) in enumerate(sitenumber.(sites))
+    for (j, site) in enumerate(sitenumbers)
         # c↑ᵢ† c↑ᵢ₊ₙ = a↑ᵢ† Fᵢ Fᵢ₊₁ ⋯ Fᵢ₊ₙ₋₁ a↑ᵢ₊ₙ
         # c↑ᵢ₊ₙ† c↑ᵢ = -a↑ᵢ Fᵢ Fᵢ₊₁ ⋯ Fᵢ₊ₙ₋₁ a↑ᵢ₊ₙ†
         # c↓ᵢ† c↓ᵢ₊ₙ = a↓ᵢ† Fᵢ₊₁ Fᵢ₊₂ ⋯ Fᵢ₊ₙ a↓ᵢ₊ₙ
@@ -190,7 +190,7 @@ function closure_op(
     end
 
     # Dissipative part
-    for (j, site) in enumerate(sitenumber.(sites))
+    for (j, site) in enumerate(sitenumbers)
         # c↑ₖ ρ c↑ₖ† = F₁ ⋯ Fₖ₋₁ a↑ₖ ρ a↑ₖ† Fₖ₋₁ ⋯ F₁
         # Remember that:
         # • Fⱼ = (1 - 2 N↑ₖ) (1 - 2 N↓ₖ);
@@ -215,7 +215,7 @@ end
 
 ############################################################################################
 
-closure_op_adjoint(::SiteType, ::Closure, ::Vector{<:Index}, ::Int, ::Int) = nothing
+closure_op_adjoint(::SiteType, ::Closure, ::Vector{<:Int}, ::Int, ::Int) = nothing
 
 """
     closure_op_adjoint(
@@ -256,15 +256,15 @@ end
 function closure_op_adjoint(
     ::SiteType"vS=1/2",
     mc::Closure,
-    sites::Vector{<:Index},
+    sitenumbers::Vector{<:Int},
     chain_edge_site::Int,
     gradefactor::Int,
 )
     ℓ = OpSum()
-    for (j, site) in enumerate(sitenumber.(sites))
+    for (j, site) in enumerate(sitenumbers)
         ℓ += -freq(mc, j) * gkslcommutator("N", site)
     end
-    for (j, (site1, site2)) in enumerate(partition(sitenumber.(sites), 2, 1))
+    for (j, (site1, site2)) in enumerate(partition(sitenumbers, 2, 1))
         jws = jwstring(; start=site1, stop=site2)
         ℓ +=
             -innercoup(mc, j) * (
@@ -272,7 +272,7 @@ function closure_op_adjoint(
                 gkslcommutator("σ+", site1, jws..., "σ-", site2)
             )
     end
-    for (j, site) in enumerate(sitenumber.(sites))
+    for (j, site) in enumerate(sitenumbers)
         jws = jwstring(; start=chain_edge_site, stop=site)
         ℓ += -(
             outercoup(mc, j) * gkslcommutator("σ+", chain_edge_site, jws..., "σ-", site) +
@@ -281,7 +281,7 @@ function closure_op_adjoint(
         )
     end
 
-    for (j, site) in enumerate(sitenumber.(sites))
+    for (j, site) in enumerate(sitenumbers)
         # a ρ a†
         opstring = [repeat(["F⋅ * ⋅F"], site - 1); "σ+⋅ * ⋅σ-"]
         ℓ += (
@@ -297,15 +297,15 @@ end
 function closure_op_adjoint(
     ::SiteType"vElectron",
     mc::Closure,
-    sites::Vector{<:Index},
+    sitenumbers::Vector{<:Int},
     chain_edge_site::Int,
     gradefactor::Int,
 )
     ℓ = OpSum()
-    for (j, site) in enumerate(sitenumber.(sites))
+    for (j, site) in enumerate(sitenumbers)
         ℓ += -freq(mc, j) * gkslcommutator("Ntot", site)
     end
-    for (j, (site1, site2)) in enumerate(partition(sitenumber.(sites), 2, 1))
+    for (j, (site1, site2)) in enumerate(partition(sitenumbers, 2, 1))
         # Add as many "F" string operator as needed.
         jws = jwstring(; start=site1, stop=site2)
         ℓ +=
@@ -316,7 +316,7 @@ function closure_op_adjoint(
                 gkslcommutator("Adn", site1, jws..., "FAdn†", site2)
             )
     end
-    for (j, site) in enumerate(sitenumber.(sites))
+    for (j, site) in enumerate(sitenumbers)
         # c↑ᵢ† c↑ᵢ₊ₙ = a↑ᵢ† Fᵢ Fᵢ₊₁ ⋯ Fᵢ₊ₙ₋₁ a↑ᵢ₊ₙ
         # c↑ᵢ₊ₙ† c↑ᵢ = -a↑ᵢ Fᵢ Fᵢ₊₁ ⋯ Fᵢ₊ₙ₋₁ a↑ᵢ₊ₙ†
         # c↓ᵢ† c↓ᵢ₊ₙ = a↓ᵢ† Fᵢ₊₁ Fᵢ₊₂ ⋯ Fᵢ₊ₙ a↓ᵢ₊ₙ
@@ -342,7 +342,7 @@ function closure_op_adjoint(
     end
 
     # Dissipative part
-    for (j, site) in enumerate(sitenumber.(sites))
+    for (j, site) in enumerate(sitenumbers)
         # Remember that:
         # • Fⱼ = (1 - 2 N↑ₖ) (1 - 2 N↓ₖ);
         # • Fⱼ and aₛ,ₖ commute only on different sites;
@@ -374,7 +374,7 @@ const closure_op′ = closure_op_adjoint
 
 ############################################################################################
 
-filled_closure_op(::SiteType, ::Closure, ::Vector{<:Index}, ::Int) = nothing
+filled_closure_op(::SiteType, ::Closure, ::Vector{<:Int}, ::Int) = nothing
 
 """
     filled_closure_op(mc::Closure, sites::Vector{<:Index}, chain_edge_site::Int)
@@ -445,13 +445,13 @@ function filled_closure_op(
 end
 
 function filled_closure_op(
-    ::SiteType"vElectron", mc::Closure, sites::Vector{<:Index}, chain_edge_site::Int
+    ::SiteType"vElectron", mc::Closure, sitenumbers::Vector{<:Int}, chain_edge_site::Int
 )
     ℓ = OpSum()
-    for (j, site) in enumerate(sitenumber.(sites))
+    for (j, site) in enumerate(sitenumbers)
         ℓ += freq(mc, j) * gkslcommutator("Ntot", site)
     end
-    for (j, (site1, site2)) in enumerate(partition(sitenumber.(sites), 2, 1))
+    for (j, (site1, site2)) in enumerate(partition(sitenumbers, 2, 1))
         # Add as many "F" string operator as needed.
         jws = jwstring(; start=site1, stop=site2)
         ℓ +=
@@ -462,7 +462,7 @@ function filled_closure_op(
                 gkslcommutator("Adn", site1, jws..., "FAdn†", site2)
             )
     end
-    for (j, site) in enumerate(sitenumber.(sites))
+    for (j, site) in enumerate(sitenumbers)
         jws = jwstring(; start=chain_edge_site, stop=site)
         # ζⱼ c↑₀† c↑ⱼ (0 = chain edge, j = pseudomode)
         ℓ +=
@@ -481,7 +481,7 @@ function filled_closure_op(
     end
 
     # Dissipative part
-    for (j, site) in enumerate(sitenumber.(sites))
+    for (j, site) in enumerate(sitenumbers)
         # c↑ₖ† ρ c↑ₖ = a↑ₖ† Fₖ₋₁ ⋯ F₁ ρ F₁ ⋯ Fₖ₋₁ a↑ₖ
         # Remember that:
         # • Fⱼ = (1 - 2 N↑ₖ) (1 - 2 N↓ₖ);
@@ -515,7 +515,7 @@ end
 
 ############################################################################################
 
-filled_closure_op_adjoint(::SiteType, ::Closure, ::Vector{<:Index}, ::Int, ::Int) = nothing
+filled_closure_op_adjoint(::SiteType, ::Closure, ::Vector{<:Int}, ::Int, ::Int) = nothing
 
 """
     filled_closure_op_adjoint(
@@ -599,15 +599,15 @@ end
 function filled_closure_op_adjoint(
     ::SiteType"vElectron",
     mc::Closure,
-    sites::Vector{<:Index},
+    sitenumbers::Vector{<:Int},
     chain_edge_site::Int,
     gradefactor::Int,
 )
     ℓ = OpSum()
-    for (j, site) in enumerate(sitenumber.(sites))
+    for (j, site) in enumerate(sitenumbers)
         ℓ += -freq(mc, j) * gkslcommutator("Ntot", site)
     end
-    for (j, (site1, site2)) in enumerate(partition(sitenumber.(sites), 2, 1))
+    for (j, (site1, site2)) in enumerate(partition(sitenumbers, 2, 1))
         # Add as many "F" string operator as needed.
         jws = jwstring(; start=site1, stop=site2)
         ℓ +=
@@ -618,7 +618,7 @@ function filled_closure_op_adjoint(
                 gkslcommutator("Adn", site1, jws..., "FAdn†", site2)
             )
     end
-    for (j, site) in enumerate(sitenumber.(sites))
+    for (j, site) in enumerate(sitenumbers)
         jws = jwstring(; start=chain_edge_site, stop=site)
         # ζⱼ c↑₀† c↑ⱼ (0 = chain edge, j = pseudomode)
         ℓ +=
@@ -639,7 +639,7 @@ function filled_closure_op_adjoint(
     end
 
     # Dissipative part
-    for (j, site) in enumerate(sitenumber.(sites))
+    for (j, site) in enumerate(sitenumbers)
         # Remember that:
         # • Fⱼ = (1 - 2 N↑ₖ) (1 - 2 N↓ₖ);
         # • Fⱼ and aₛ,ₖ commute only on different sites;
