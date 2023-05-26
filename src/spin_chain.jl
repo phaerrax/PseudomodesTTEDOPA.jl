@@ -36,6 +36,50 @@ function spin_chain(freqs::Vector{<:Real}, coups::Vector{<:Real}, sites::Vector{
 end
 
 function spin_chain(
+    ::SiteType"S=1/2",
+    freqs::Vector{<:Real},
+    coups::Vector{<:Real},
+    sitenumbers::Vector{<:Int},
+)
+    h = OpSum()
+
+    for (j, site) in enumerate(sitenumbers)
+        h += freqs[j], "n", site
+    end
+
+    for (j, (site1, site2)) in enumerate(partition(sitenumbers, 2, 1))
+        h += coups[j + 1], "c†", site1, "c", site2
+        h += coups[j + 1], "c†", site2, "c", site1
+    end
+
+    return h
+end
+
+function spin_chain(
+    ::SiteType"Electron",
+    freqs::Vector{<:Real},
+    coups::Vector{<:Real},
+    sitenumbers::Vector{<:Int},
+)
+    h = OpSum()
+
+    for (j, site) in enumerate(sitenumbers)
+        h += freqs[j], "n↓", site
+        h += freqs[j], "n↑", site
+    end
+
+    for (j, (site1, site2)) in enumerate(partition(sitenumbers, 2, 1))
+        h += coups[j + 1], "c†↓", site1, "c↓", site2
+        h += coups[j + 1], "c†↓", site2, "c↓", site1
+
+        h += coups[j + 1], "c†↑", site1, "c↑", site2
+        h += coups[j + 1], "c†↑", site2, "c↑", site1
+    end
+
+    return h
+end
+
+function spin_chain(
     ::SiteType"vS=1/2",
     freqs::Vector{<:Real},
     coups::Vector{<:Real},
@@ -171,6 +215,27 @@ function exchange_interaction(s1::Index, s2::Index)
             "Index tags $(tags(s1))",
         ),
     )
+end
+
+function exchange_interaction(::SiteType"S=1/2", site1::Int, site2::Int)
+    h = OpSum()
+
+    h += "c†", site1, "c", site2
+    h += "c†", site2, "c", site1
+
+    return h
+end
+
+function exchange_interaction(::SiteType"Electron", site1::Int, site2::Int)
+    h = OpSum()
+
+    h += "c†↑", site1, "c↑", site2
+    h += "c†↑", site2, "c↑", site1
+
+    h += "c†↓", site1, "c↓", site2
+    h += "c†↓", site2, "c↓", site1
+
+    return h
 end
 
 function exchange_interaction(::SiteType"vS=1/2", site1::Int, site2::Int)
