@@ -36,7 +36,7 @@ function spin_chain(freqs::Vector{<:Real}, coups::Vector{<:Real}, sites::Vector{
 end
 
 function spin_chain(
-    ::SiteType"S=1/2",
+    ::SiteType"Fermion",
     freqs::Vector{<:Real},
     coups::Vector{<:Real},
     sitenumbers::Vector{<:Int},
@@ -217,7 +217,7 @@ function exchange_interaction(s1::Index, s2::Index)
     )
 end
 
-function exchange_interaction(::SiteType"S=1/2", site1::Int, site2::Int)
+function exchange_interaction(::SiteType"Fermion", site1::Int, site2::Int)
     h = OpSum()
 
     h += "c†", site1, "c", site2
