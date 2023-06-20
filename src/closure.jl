@@ -685,7 +685,7 @@ function filled_closure_op_adjoint(
     for (j, site) in enumerate(sitenumbers)
         # a ρ a†
         opstring = [repeat(["F⋅ * ⋅F"], site - 1); "σ-⋅ * ⋅σ+"]
-        ℓ += (damp(mc, j), collect(Iterators.flatten(zip(opstring, 1:site)))...)
+        ℓ += (gradefactor * damp(mc, j), collect(Iterators.flatten(zip(opstring, 1:site)))...)
         # -0.5 (a a† ρ + ρ a a†) = -0.5 (ρ - a† a ρ + ρ a† a)
         ℓ += 0.5damp(mc, j), "N⋅", site
         ℓ += 0.5damp(mc, j), "⋅N", site
