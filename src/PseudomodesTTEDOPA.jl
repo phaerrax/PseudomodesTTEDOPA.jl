@@ -57,6 +57,7 @@ include("current_operators.jl")
 
 include("site_types/spinhalf.jl")
 include("site_types/vectorized_spinhalf.jl")
+include("site_types/vectorized_fermion.jl")
 include("site_types/oscillator.jl")
 include("site_types/vectorized_electron.jl")
 

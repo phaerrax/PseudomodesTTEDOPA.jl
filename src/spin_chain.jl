@@ -82,7 +82,7 @@ function spin_chain(
 end
 
 function spin_chain(
-    ::SiteType"vS=1/2",
+    ::SiteType"vFermion",
     freqs::Vector{<:Real},
     coups::Vector{<:Real},
     sitenumbers::Vector{<:Int},
@@ -97,6 +97,26 @@ function spin_chain(
             coups[j] * (
                 gkslcommutator("σ+", site1, jws..., "σ-", site2) +
                 gkslcommutator("σ-", site1, jws..., "σ+", site2)
+            )
+    end
+    return ℓ
+end
+
+function spin_chain(
+    ::SiteType"vS=1/2",
+    freqs::Vector{<:Real},
+    coups::Vector{<:Real},
+    sitenumbers::Vector{<:Int},
+)
+    ℓ = OpSum()
+    for (j, site) in enumerate(sitenumbers)
+        ℓ += freqs[j] * gkslcommutator("N", site)
+    end
+    for (j, (site1, site2)) in enumerate(partition(sitenumbers, 2, 1))
+        ℓ +=
+            coups[j] * (
+                gkslcommutator("σ+", site1, "σ-", site2) +
+                gkslcommutator("σ-", site1, "σ+", site2)
             )
     end
     return ℓ
@@ -170,6 +190,16 @@ function spin_chain_adjoint(
 end
 
 # In the GKSL equation, the adjoint of -i[H,-] is simply i[H,-].
+#
+function spin_chain_adjoint(
+    st::SiteType"vFermion",
+    freqs::Vector{<:Real},
+    coups::Vector{<:Real},
+    sitenumbers::Vector{<:Int},
+)
+    return -spin_chain(st, freqs, coups, sitenumbers)
+end
+
 function spin_chain_adjoint(
     st::SiteType"vS=1/2",
     freqs::Vector{<:Real},
@@ -245,12 +275,21 @@ function exchange_interaction(::SiteType"Electron", site1::Int, site2::Int)
     return h
 end
 
-function exchange_interaction(::SiteType"vS=1/2", site1::Int, site2::Int)
+function exchange_interaction(::SiteType"vFermion", site1::Int, site2::Int)
     ℓ = OpSum()
     jws = jwstring(; start=site1, stop=site2)
     ℓ += (
         gkslcommutator("σ+", site1, jws..., "σ-", site2) +
         gkslcommutator("σ-", site1, jws..., "σ+", site2)
+    )
+    return ℓ
+end
+
+function exchange_interaction(::SiteType"vS=1/2", site1::Int, site2::Int)
+    ℓ = OpSum()
+    ℓ += (
+        gkslcommutator("σ+", site1, "σ-", site2) +
+        gkslcommutator("σ-", site1, "σ+", site2)
     )
     return ℓ
 end
@@ -304,6 +343,11 @@ function exchange_interaction_adjoint(s1::Index, s2::Index)
 end
 
 # In the GKSL equation, the adjoint of -i[H,-] is simply i[H,-].
+
+function exchange_interaction_adjoint(st::SiteType"vFermion", site1::Int, site2::Int)
+    return -exchange_interaction(st, site1, site2)
+end
+
 function exchange_interaction_adjoint(st::SiteType"vS=1/2", site1::Int, site2::Int)
     return -exchange_interaction(st, site1, site2)
 end

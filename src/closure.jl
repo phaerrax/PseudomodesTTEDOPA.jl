@@ -114,7 +114,7 @@ function closure_op(mc::Closure, sites::Vector{<:Index}, chain_edge_site::Int)
 end
 
 function closure_op(
-    ::SiteType"vS=1/2", mc::Closure, sitenumbers::Vector{<:Int}, chain_edge_site::Int
+    ::SiteType"vFermion", mc::Closure, sitenumbers::Vector{<:Int}, chain_edge_site::Int
 )
     ℓ = OpSum()
     for (j, site) in enumerate(sitenumbers)
@@ -141,6 +141,37 @@ function closure_op(
         # a ρ a†
         opstring = [repeat(["F⋅ * ⋅F"], site - 1); "σ-⋅ * ⋅σ+"]
         ℓ += (damp(mc, j), collect(Iterators.flatten(zip(opstring, 1:site)))...)
+        # -0.5 (a† a ρ + ρ a† a)
+        ℓ += -0.5damp(mc, j), "N⋅", site
+        ℓ += -0.5damp(mc, j), "⋅N", site
+    end
+    return ℓ
+end
+
+function closure_op(
+    ::SiteType"vS=1/2", mc::Closure, sitenumbers::Vector{<:Int}, chain_edge_site::Int
+)
+    ℓ = OpSum()
+    for (j, site) in enumerate(sitenumbers)
+        ℓ += freq(mc, j) * gkslcommutator("N", site)
+    end
+    for (j, (site1, site2)) in enumerate(partition(sitenumbers, 2, 1))
+        ℓ +=
+            innercoup(mc, j) * (
+                gkslcommutator("σ-", site1, "σ+", site2) +
+                gkslcommutator("σ+", site1, "σ-", site2)
+            )
+    end
+    for (j, site) in enumerate(sitenumbers)
+        ℓ += (
+            outercoup(mc, j) * gkslcommutator("σ+", chain_edge_site, "σ-", site) +
+            conj(outercoup(mc, j)) * gkslcommutator("σ-", chain_edge_site, "σ+", site)
+        )
+    end
+
+    for (j, site) in enumerate(sitenumbers)
+        # a ρ a†
+        ℓ += damp(mc, j), "σ-⋅ * ⋅σ+", site
         # -0.5 (a† a ρ + ρ a† a)
         ℓ += -0.5damp(mc, j), "N⋅", site
         ℓ += -0.5damp(mc, j), "⋅N", site
@@ -254,7 +285,7 @@ function closure_op_adjoint(
 end
 
 function closure_op_adjoint(
-    ::SiteType"vS=1/2",
+    ::SiteType"vFermion",
     mc::Closure,
     sitenumbers::Vector{<:Int},
     chain_edge_site::Int,
@@ -287,6 +318,41 @@ function closure_op_adjoint(
         ℓ += (
             gradefactor * damp(mc, j), collect(Iterators.flatten(zip(opstring, 1:site)))...
         )
+        # -0.5 (a† a ρ + ρ a† a)
+        ℓ += -0.5damp(mc, j), "N⋅", site
+        ℓ += -0.5damp(mc, j), "⋅N", site
+    end
+    return ℓ
+end
+
+function closure_op_adjoint(
+    ::SiteType"vS=1/2",
+    mc::Closure,
+    sitenumbers::Vector{<:Int},
+    chain_edge_site::Int,
+    gradefactor::Int,
+)
+    ℓ = OpSum()
+    for (j, site) in enumerate(sitenumbers)
+        ℓ += -freq(mc, j) * gkslcommutator("N", site)
+    end
+    for (j, (site1, site2)) in enumerate(partition(sitenumbers, 2, 1))
+        ℓ +=
+            -innercoup(mc, j) * (
+                gkslcommutator("σ-", site1, "σ+", site2) +
+                gkslcommutator("σ+", site1, "σ-", site2)
+            )
+    end
+    for (j, site) in enumerate(sitenumbers)
+        ℓ += -(
+            outercoup(mc, j) * gkslcommutator("σ+", chain_edge_site, "σ-", site) +
+            conj(outercoup(mc, j)) * gkslcommutator("σ-", chain_edge_site, "σ+", site)
+        )
+    end
+
+    for (j, site) in enumerate(sitenumbers)
+        # a† ρ a
+        ℓ += gradefactor * damp(mc, j), "σ+⋅ * ⋅σ-", site
         # -0.5 (a† a ρ + ρ a† a)
         ℓ += -0.5damp(mc, j), "N⋅", site
         ℓ += -0.5damp(mc, j), "⋅N", site
@@ -409,7 +475,7 @@ function filled_closure_op(mc::Closure, sites::Vector{<:Index}, chain_edge_site:
 end
 
 function filled_closure_op(
-    ::SiteType"vS=1/2", mc::Closure, sitenumbers::Vector{<:Int}, chain_edge_site::Int
+    ::SiteType"vFermion", mc::Closure, sitenumbers::Vector{<:Int}, chain_edge_site::Int
 )
     ℓ = OpSum()
     for (j, site) in enumerate(sitenumbers)
@@ -436,6 +502,38 @@ function filled_closure_op(
         # a ρ a†
         opstring = [repeat(["F⋅ * ⋅F"], site - 1); "σ+⋅ * ⋅σ-"]
         ℓ += (damp(mc, j), collect(Iterators.flatten(zip(opstring, 1:site)))...)
+        # -0.5 (a a† ρ + ρ a a†)
+        ℓ += 0.5damp(mc, j), "N⋅", site
+        ℓ += 0.5damp(mc, j), "⋅N", site
+        ℓ += -damp(mc, j), "Id", site
+    end
+    return ℓ
+end
+
+function filled_closure_op(
+    ::SiteType"vS=1/2", mc::Closure, sitenumbers::Vector{<:Int}, chain_edge_site::Int
+)
+    ℓ = OpSum()
+    for (j, site) in enumerate(sitenumbers)
+        ℓ += freq(mc, j) * gkslcommutator("N", site)
+    end
+    for (j, (site1, site2)) in enumerate(partition(sitenumbers, 2, 1))
+        ℓ +=
+            innercoup(mc, j) * (
+                gkslcommutator("σ-", site1, "σ+", site2) +
+                gkslcommutator("σ+", site1, "σ-", site2)
+            )
+    end
+    for (j, site) in enumerate(sitenumbers)
+        ℓ += (
+            outercoup(mc, j) * gkslcommutator("σ+", chain_edge_site, "σ-", site) +
+            conj(outercoup(mc, j)) * gkslcommutator("σ-", chain_edge_site, "σ+", site)
+        )
+    end
+
+    for (j, site) in enumerate(sitenumbers)
+        # a† ρ a
+        ℓ += damp(mc, j), "σ+⋅ * ⋅σ-", site
         # -0.5 (a a† ρ + ρ a a†)
         ℓ += 0.5damp(mc, j), "N⋅", site
         ℓ += 0.5damp(mc, j), "⋅N", site
@@ -557,7 +655,7 @@ function filled_closure_op_adjoint(
 end
 
 function filled_closure_op_adjoint(
-    ::SiteType"vS=1/2",
+    ::SiteType"vFermion",
     mc::Closure,
     sitenumbers::Vector{<:Int},
     chain_edge_site::Int,
@@ -589,6 +687,42 @@ function filled_closure_op_adjoint(
         opstring = [repeat(["F⋅ * ⋅F"], site - 1); "σ-⋅ * ⋅σ+"]
         ℓ += (damp(mc, j), collect(Iterators.flatten(zip(opstring, 1:site)))...)
         # -0.5 (a a† ρ + ρ a a†) = -0.5 (ρ - a† a ρ + ρ a† a)
+        ℓ += 0.5damp(mc, j), "N⋅", site
+        ℓ += 0.5damp(mc, j), "⋅N", site
+        ℓ += -damp(mc, j), "Id", site
+    end
+    return ℓ
+end
+
+function filled_closure_op_adjoint(
+    ::SiteType"vS=1/2",
+    mc::Closure,
+    sitenumbers::Vector{<:Int},
+    chain_edge_site::Int,
+    gradefactor::Int,
+)
+    ℓ = OpSum()
+    for (j, site) in enumerate(sitenumbers)
+        ℓ += -freq(mc, j) * gkslcommutator("N", site)
+    end
+    for (j, (site1, site2)) in enumerate(partition(sitenumbers, 2, 1))
+        ℓ +=
+            -innercoup(mc, j) * (
+                gkslcommutator("σ-", site1, "σ+", site2) +
+                gkslcommutator("σ+", site1, "σ-", site2)
+            )
+    end
+    for (j, site) in enumerate(sitenumbers)
+        ℓ += -(
+            outercoup(mc, j) * gkslcommutator("σ+", chain_edge_site, "σ-", site) +
+            conj(outercoup(mc, j)) * gkslcommutator("σ-", chain_edge_site, "σ+", site)
+        )
+    end
+
+    for (j, site) in enumerate(sitenumbers)
+        # a ρ a†
+        ℓ += damp(mc, j), "σ-⋅ * ⋅σ+", site
+        # -0.5 (a a† ρ + ρ a a†) = -0.5 (2ρ - a† a ρ + ρ a† a)
         ℓ += 0.5damp(mc, j), "N⋅", site
         ℓ += 0.5damp(mc, j), "⋅N", site
         ℓ += -damp(mc, j), "Id", site
