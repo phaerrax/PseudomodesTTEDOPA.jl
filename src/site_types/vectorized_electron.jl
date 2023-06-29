@@ -43,6 +43,7 @@ ITensors.state(::StateName"vecId", ::SiteType"vElectron") = vop("Id")
 ITensors.state(::StateName"vNup", ::SiteType"vElectron") = vop("Nup")
 ITensors.state(::StateName"vNdn", ::SiteType"vElectron") = vop("Ndn")
 ITensors.state(::StateName"vNtot", ::SiteType"vElectron") = vop("Ntot")
+ITensors.state(::StateName"vNupNdn", ::SiteType"vElectron") = vop("NupNdn")
 
 # Operators acting on vectorised spins
 # ------------------------------------
@@ -69,8 +70,8 @@ ITensors.op(::OpName"⋅Ndn", ::SiteType"vElectron") = postmul(elop("Ndn"))
 ITensors.op(::OpName"Ntot⋅", ::SiteType"vElectron") = premul(elop("Ntot"))
 ITensors.op(::OpName"⋅Ntot", ::SiteType"vElectron") = postmul(elop("Ntot"))
 
-ITensors.op(::OpName"NupNdn⋅", ::SiteType"vElectron") = premul(elop("Nup") * elop("Ndn"))
-ITensors.op(::OpName"⋅NupNdn", ::SiteType"vElectron") = postmul(elop("Nup") * elop("Ndn"))
+ITensors.op(::OpName"NupNdn⋅", ::SiteType"vElectron") = premul(elop("NupNdn"))
+ITensors.op(::OpName"⋅NupNdn", ::SiteType"vElectron") = postmul(elop("NupNdn"))
 
 # Jordan-Wigner string operator
 ITensors.op(::OpName"F⋅", ::SiteType"vElectron") = premul(elop("F"))
