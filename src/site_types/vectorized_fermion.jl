@@ -60,6 +60,14 @@ end
 function ITensors.state(::StateName"vId", ::SiteType"vFermion")
     return vec(ITensors.op(OpName("Id"), SiteType("S=1/2")), gellmannbasis(2))
 end
+function ITensors.state(::StateName"vC", ::SiteType"vFermion")
+    # FIXME: add Jordan-Wigner strings
+    return vec(ITensors.op(OpName("S-"), SiteType("S=1/2")), gellmannbasis(2))
+end
+function ITensors.state(::StateName"vCdag", ::SiteType"vFermion")
+    # FIXME: add Jordan-Wigner strings
+    return vec(ITensors.op(OpName("S+"), SiteType("S=1/2")), gellmannbasis(2))
+end
 function ITensors.state(::StateName"vN", ::SiteType"vFermion")
     return vec(ITensors.op(OpName("N"), SiteType("S=1/2")), gellmannbasis(2))
 end
