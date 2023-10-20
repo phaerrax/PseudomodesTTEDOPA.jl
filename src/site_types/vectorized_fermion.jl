@@ -1,7 +1,7 @@
 # Space of spin-1/2 particles (vectorised)
 # ========================================
 """
-    ITensors.space(st::SiteType"vFermion"; dim = 2)
+    ITensors.space(st::SiteType"vFermion")
 
 Create the Hilbert space for a site of type "vFermion", i.e. a vectorised
 spin-1/2 particle, where the vectorisation is performed wrt the generalised
@@ -16,6 +16,25 @@ ITensors.space(::SiteType"vFermion") = 4
 #     vᵢ = tr(Λᵢ A),
 # while a linear map L : Mat(ℂ²) → Mat(ℂ²) by the matrix ℓ such that
 #     ℓᵢⱼ = tr(Λᵢ L(Λⱼ)).
+
+function vstate(sn::AbstractString, ::SiteType"vFermion")
+    v = ITensors.state(StateName(sn), SiteType("Fermion"))
+    return PseudomodesTTEDOPA.vec(kron(v, v'), gellmannbasis(2))
+end
+function vop(on::AbstractString, ::SiteType"vFermion")
+    return PseudomodesTTEDOPA.vec(
+        ITensors.op(OpName(on), SiteType("Fermion")), gellmannbasis(2)
+    )
+end
+
+# Operator dispatch
+# =================
+function premultiply(mat, ::SiteType"vFermion")
+    return PseudomodesTTEDOPA.vec(x -> mat * x, gellmannbasis(2))
+end
+function postmultiply(mat, ::SiteType"vFermion")
+    return PseudomodesTTEDOPA.vec(x -> x * mat, gellmannbasis(2))
+end
 
 # States
 # ------
@@ -97,65 +116,105 @@ end
 
 # Operators acting on vectorised spins
 # ------------------------------------
-# Luckily, even when they are acting on two sites at the same times, every
-# operator we need to define is factorised (or a sum of factorised operators).
-# This simplifies the calculations immensely: if
-#   L : Mat(ℂ²) ⊗ Mat(ℂ²) → Mat(ℂ²) ⊗ Mat(ℂ²)
-# can be written as L₁ ⊗ L₂ for Lᵢ : Mat(ℂ²) → Mat(ℂ²) then
-#   ⟨êᵢ₁ ⊗ êᵢ₂, L(êⱼ₁ ⊗ êⱼ₂)⟩ = ⟨êᵢ₁, L₁(êⱼ₁)⟩ ⟨êᵢ₂, L₂(êⱼ₂)⟩.
-
-function ITensors.op(::OpName"Id", ::SiteType"vFermion")
-    return Matrix(1.0I, 4, 4)
-end
-ITensors.op(::OpName"⋅Id", st::SiteType"vFermion") = ITensors.op(OpName("Id"), st)
-ITensors.op(::OpName"Id⋅", st::SiteType"vFermion") = ITensors.op(OpName("Id"), st)
-
-# N == σ⁺σ⁻
-function ITensors.op(::OpName"N⋅", ::SiteType"vFermion")
-    return vec(x -> ITensors.op(OpName("N"), SiteType("S=1/2")) * x, gellmannbasis(2))
-end
-function ITensors.op(::OpName"⋅N", ::SiteType"vFermion")
-    return vec(x -> x * ITensors.op(OpName("N"), SiteType("S=1/2")), gellmannbasis(2))
+function ITensors.op(::OpName"Id", ::SiteType"Fermion")
+    return Matrix(1.0I, 2, 2)
 end
 
-function ITensors.op(s::OpName"σ+⋅", ::SiteType"vFermion")
-    return vec(x -> ITensors.op(OpName("S+"), SiteType("S=1/2")) * x, gellmannbasis(2))
-end
-function ITensors.op(::OpName"⋅σ+", ::SiteType"vFermion")
-    return vec(x -> x * ITensors.op(OpName("S+"), SiteType("S=1/2")), gellmannbasis(2))
-end
-
-function ITensors.op(s::OpName"σ-⋅", ::SiteType"vFermion")
-    return vec(x -> ITensors.op(OpName("S-"), SiteType("S=1/2")) * x, gellmannbasis(2))
-end
-function ITensors.op(::OpName"⋅σ-", ::SiteType"vFermion")
-    return vec(x -> x * ITensors.op(OpName("S-"), SiteType("S=1/2")), gellmannbasis(2))
-end
-
-function ITensors.op(s::OpName"σx⋅", ::SiteType"vFermion")
-    return vec(x -> ITensors.op(OpName("σx"), SiteType("S=1/2")) * x, gellmannbasis(2))
-end
-function ITensors.op(::OpName"⋅σx", ::SiteType"vFermion")
-    return vec(x -> x * ITensors.op(OpName("σx"), SiteType("S=1/2")), gellmannbasis(2))
-end
-
-function ITensors.op(s::OpName"σy⋅", ::SiteType"vFermion")
-    return vec(x -> ITensors.op(OpName("σy"), SiteType("S=1/2")) * x, gellmannbasis(2))
-end
-function ITensors.op(::OpName"⋅σy", ::SiteType"vFermion")
-    return vec(x -> x * ITensors.op(OpName("σy"), SiteType("S=1/2")), gellmannbasis(2))
-end
-
-function ITensors.op(s::OpName"σz⋅", ::SiteType"vFermion")
-    return vec(x -> ITensors.op(OpName("σz"), SiteType("S=1/2")) * x, gellmannbasis(2))
-end
-function ITensors.op(::OpName"⋅σz", ::SiteType"vFermion")
-    return vec(x -> x * ITensors.op(OpName("σz"), SiteType("S=1/2")), gellmannbasis(2))
-end
-
-function ITensors.op(s::OpName"F⋅", ::SiteType"vFermion")
-    return vec(x -> ITensors.op(OpName("F"), SiteType("S=1/2")) * x, gellmannbasis(2))
-end
-function ITensors.op(::OpName"⋅F", ::SiteType"vFermion")
-    return vec(x -> x * ITensors.op(OpName("F"), SiteType("S=1/2")), gellmannbasis(2))
+# The goal here is to define operators "A⋅" and "⋅A" in an automatic way whenever the
+# OpName "A" is defined for the Fermion site type.
+# This is handy, but unless we find a better way to define this function this means that
+# _every_ operator has to be written this way; we cannot just return op(on, st) at the end
+# if no "⋅" is found, otherwise an infinite loop would be entered.
+# We make an exception, though, for "Id" since it is an essential operator, and something
+# would probably break if it weren't defined.
+function ITensors.op(on::OpName, st::SiteType"vFermion"; kwargs...)
+    name = strip(String(ITensors.name(on))) # Remove extra whitespace
+    if name == "Id"
+        return Matrix(1.0I, 4, 4)
+    end
+    dotloc = findfirst("⋅", name)
+    # This returns the position of the cdot in the operator name String.
+    # It is `nothing` if no cdot is found.
+    if !isnothing(dotloc)
+        on1, on2 = nothing, nothing
+        on1 = name[1:prevind(name, dotloc.start)]
+        on2 = name[nextind(name, dotloc.start):end]
+        # If the OpName `on` is written correctly, i.e. it is either "A⋅" or "⋅A" for some
+        # A, then either `on1` or `on2` has to be empty (not both, not neither of them).
+        if (on1 == "" && on2 == "") || (on1 != "" && on2 != "")
+            throw(
+                ArgumentError(
+                    "Invalid operator name: $name. Operator name is not \"Id\" or of the " *
+                    "form \"A⋅\" or \"⋅A\"",
+                ),
+            )
+        end
+        # name == "⋅A" -> on1 is an empty string
+        # name == "A⋅" -> on2 is an empty string
+        if on1 == ""
+            # Try calling a function of the form:
+            #    op(::OpName, ::SiteType; kwargs...)
+            # which returns a Julia matrix
+            mat = ITensors.op(OpName(on2), SiteType("Fermion"); kwargs...)
+            if isnothing(mat)
+                # Otherwise try calling a function of the form
+                #    op!(::ITensor, ::OpName, ::SiteType, ::Index...; kwargs...)
+                dummy = siteind("Fermion")
+                x = ITensor(prime(dummy), ITensors.dag(dummy))
+                r = ITensors.op!(x, OpName(on2), SiteType("Fermion"), dummy; kwargs...)
+                if isnothing(r)
+                    throw(
+                        ArgumentError(
+                            "Overload of \"op\" or \"op!\" functions not found for " *
+                            "operator name \"$on2\" and Index tag $(tags(dummy)).",
+                        ),
+                    )
+                end
+                mat = matrix(x)
+            end
+            if isnothing(mat)
+                throw(
+                    ArgumentError(
+                        "Overload of \"op\" or \"op!\" functions not found for operator " *
+                        "name \"$name\" and Index tag \"Fermion\".",
+                    ),
+                )
+            end
+            return postmultiply(mat, st)
+        elseif on2 == ""
+            # Try calling a function of the form:
+            #    op(::OpName, ::SiteType; kwargs...)
+            # which returns a Julia matrix
+            mat = ITensors.op(OpName(on1), SiteType("Fermion"); kwargs...)
+            if isnothing(mat)
+                # Otherwise try calling a function of the form
+                #    op!(::ITensor, ::OpName, ::SiteType, ::Index...; kwargs...)
+                dummy = siteind("Fermion")
+                x = ITensor(prime(dummy), ITensors.dag(dummy))
+                r = ITensors.op!(x, OpName(on1), SiteType("Fermion"), dummy; kwargs...)
+                if isnothing(r)
+                    throw(
+                        ArgumentError(
+                            "Overload of \"op\" or \"op!\" functions not found for " *
+                            "operator name \"$on1\" and Index tag $(tags(dummy)).",
+                        ),
+                    )
+                end
+                mat = matrix(x)
+            end
+            if isnothing(mat)
+                throw(
+                    ArgumentError(
+                        "Overload of \"op\" or \"op!\" functions not found for operator " *
+                        "name \"$name\" and Index tag \"Fermion\".",
+                    ),
+                )
+            end
+            return premultiply(mat, st)
+        else
+            error("Unknown error with operator name $name")
+        end
+    else
+        error("Operator name $name is not \"Id\" or of the form \"A⋅\" or \"⋅A\"")
+    end
 end
