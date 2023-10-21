@@ -29,10 +29,10 @@ postmul(mat, ::SiteType"vElectron") = vec(x -> x * mat, gellmannbasis(4))
 
 # States (actual ones)
 # --------------------
-ITensors.state(::StateName"Emp", ::SiteType"vElectron") = vstate("Emp")
-ITensors.state(::StateName"Up", ::SiteType"vElectron") = vstate("Up")
-ITensors.state(::StateName"Dn", ::SiteType"vElectron") = vstate("Dn")
-ITensors.state(::StateName"UpDn", ::SiteType"vElectron") = vstate("UpDn")
+ITensors.state(::StateName"Emp", st::SiteType"vElectron") = vstate("Emp", st)
+ITensors.state(::StateName"Up", st::SiteType"vElectron") = vstate("Up", st)
+ITensors.state(::StateName"Dn", st::SiteType"vElectron") = vstate("Dn", st)
+ITensors.state(::StateName"UpDn", st::SiteType"vElectron") = vstate("UpDn", st)
 
 # States representing vectorised operators
 # ----------------------------------------
@@ -40,12 +40,12 @@ function ITensors.op(::OpName"Id", ::SiteType"Electron") # ITensors doesn't defi
     return Matrix(1.0I, 4, 4)
 end
 
-ITensors.state(::StateName"vId", ::SiteType"vElectron") = vop("Id")
-ITensors.state(::StateName"vecId", ::SiteType"vElectron") = vop("Id")
-ITensors.state(::StateName"vNup", ::SiteType"vElectron") = vop("Nup")
-ITensors.state(::StateName"vNdn", ::SiteType"vElectron") = vop("Ndn")
-ITensors.state(::StateName"vNtot", ::SiteType"vElectron") = vop("Ntot")
-ITensors.state(::StateName"vNupNdn", ::SiteType"vElectron") = vop("NupNdn")
+ITensors.state(::StateName"vId", st::SiteType"vElectron") = vop("Id", st)
+ITensors.state(::StateName"vecId", st::SiteType"vElectron") = vop("Id", st)
+ITensors.state(::StateName"vNup", st::SiteType"vElectron") = vop("Nup", st)
+ITensors.state(::StateName"vNdn", st::SiteType"vElectron") = vop("Ndn", st)
+ITensors.state(::StateName"vNtot", st::SiteType"vElectron") = vop("Ntot", st)
+ITensors.state(::StateName"vNupNdn", st::SiteType"vElectron") = vop("NupNdn", st)
 
 # Operators acting on vectorised spins
 # ------------------------------------
@@ -63,46 +63,58 @@ ITensors.op(::OpName"⋅Id", st::SiteType"vElectron") = ITensors.op(OpName("Id")
 ITensors.op(::OpName"Id⋅", st::SiteType"vElectron") = ITensors.op(OpName("Id"), st)
 
 # Number operators
-ITensors.op(::OpName"Nup⋅", ::SiteType"vElectron") = premul(elop("Nup"))
-ITensors.op(::OpName"⋅Nup", ::SiteType"vElectron") = postmul(elop("Nup"))
+ITensors.op(::OpName"Nup⋅", st::SiteType"vElectron") = premul(elop("Nup"), st)
+ITensors.op(::OpName"⋅Nup", st::SiteType"vElectron") = postmul(elop("Nup"), st)
 
-ITensors.op(::OpName"Ndn⋅", ::SiteType"vElectron") = premul(elop("Ndn"))
-ITensors.op(::OpName"⋅Ndn", ::SiteType"vElectron") = postmul(elop("Ndn"))
+ITensors.op(::OpName"Ndn⋅", st::SiteType"vElectron") = premul(elop("Ndn"), st)
+ITensors.op(::OpName"⋅Ndn", st::SiteType"vElectron") = postmul(elop("Ndn"), st)
 
-ITensors.op(::OpName"Ntot⋅", ::SiteType"vElectron") = premul(elop("Ntot"))
-ITensors.op(::OpName"⋅Ntot", ::SiteType"vElectron") = postmul(elop("Ntot"))
+ITensors.op(::OpName"Ntot⋅", st::SiteType"vElectron") = premul(elop("Ntot"), st)
+ITensors.op(::OpName"⋅Ntot", st::SiteType"vElectron") = postmul(elop("Ntot"), st)
 
-ITensors.op(::OpName"NupNdn⋅", ::SiteType"vElectron") = premul(elop("NupNdn"))
-ITensors.op(::OpName"⋅NupNdn", ::SiteType"vElectron") = postmul(elop("NupNdn"))
+ITensors.op(::OpName"NupNdn⋅", st::SiteType"vElectron") = premul(elop("NupNdn"), st)
+ITensors.op(::OpName"⋅NupNdn", st::SiteType"vElectron") = postmul(elop("NupNdn"), st)
 
 # Jordan-Wigner string operator
-ITensors.op(::OpName"F⋅", ::SiteType"vElectron") = premul(elop("F"))
-ITensors.op(::OpName"⋅F", ::SiteType"vElectron") = postmul(elop("F"))
+ITensors.op(::OpName"F⋅", st::SiteType"vElectron") = premul(elop("F"), st)
+ITensors.op(::OpName"⋅F", st::SiteType"vElectron") = postmul(elop("F"), st)
 
 # Creation and annihilation operators (with and without strings, as needed)
-ITensors.op(::OpName"Aup⋅", ::SiteType"vElectron") = premul(elop("Aup"))
-ITensors.op(::OpName"⋅Aup", ::SiteType"vElectron") = postmul(elop("Aup"))
+ITensors.op(::OpName"Aup⋅", st::SiteType"vElectron") = premul(elop("Aup"), st)
+ITensors.op(::OpName"⋅Aup", st::SiteType"vElectron") = postmul(elop("Aup"), st)
 
-ITensors.op(::OpName"Aup†⋅", ::SiteType"vElectron") = premul(elop("Adagup"))
-ITensors.op(::OpName"⋅Aup†", ::SiteType"vElectron") = postmul(elop("Adagup"))
+ITensors.op(::OpName"Aup†⋅", st::SiteType"vElectron") = premul(elop("Adagup"), st)
+ITensors.op(::OpName"⋅Aup†", st::SiteType"vElectron") = postmul(elop("Adagup"), st)
 
-ITensors.op(::OpName"Aup†F⋅", ::SiteType"vElectron") = premul(elop("Adagup") * elop("F"))
-ITensors.op(::OpName"⋅Aup†F", ::SiteType"vElectron") = postmul(elop("Adagup") * elop("F"))
+function ITensors.op(::OpName"Aup†F⋅", st::SiteType"vElectron")
+    return premul(elop("Adagup") * elop("F"), st)
+end
+function ITensors.op(::OpName"⋅Aup†F", st::SiteType"vElectron")
+    return postmul(elop("Adagup") * elop("F"), st)
+end
 
-ITensors.op(::OpName"AupF⋅", ::SiteType"vElectron") = premul(elop("Aup") * elop("F"))
-ITensors.op(::OpName"⋅AupF", ::SiteType"vElectron") = postmul(elop("Aup") * elop("F"))
+ITensors.op(::OpName"AupF⋅", st::SiteType"vElectron") = premul(elop("Aup") * elop("F"), st)
+ITensors.op(::OpName"⋅AupF", st::SiteType"vElectron") = postmul(elop("Aup") * elop("F"), st)
 
-ITensors.op(::OpName"Adn⋅", ::SiteType"vElectron") = premul(elop("Adn"))
-ITensors.op(::OpName"⋅Adn", ::SiteType"vElectron") = postmul(elop("Adn"))
+ITensors.op(::OpName"Adn⋅", st::SiteType"vElectron") = premul(elop("Adn"), st)
+ITensors.op(::OpName"⋅Adn", st::SiteType"vElectron") = postmul(elop("Adn"), st)
 
-ITensors.op(::OpName"Adn†⋅", ::SiteType"vElectron") = premul(elop("Adagdn"))
-ITensors.op(::OpName"⋅Adn†", ::SiteType"vElectron") = postmul(elop("Adagdn"))
+ITensors.op(::OpName"Adn†⋅", st::SiteType"vElectron") = premul(elop("Adagdn"), st)
+ITensors.op(::OpName"⋅Adn†", st::SiteType"vElectron") = postmul(elop("Adagdn"), st)
 
-ITensors.op(::OpName"FAdn⋅", ::SiteType"vElectron") = premul(elop("F") * elop("Adn"))
-ITensors.op(::OpName"⋅FAdn", ::SiteType"vElectron") = postmul(elop("F") * elop("Adn"))
+ITensors.op(::OpName"FAdn⋅", st::SiteType"vElectron") = premul(elop("F") * elop("Adn"), st)
+ITensors.op(::OpName"⋅FAdn", st::SiteType"vElectron") = postmul(elop("F") * elop("Adn"), st)
 
-ITensors.op(::OpName"FAdn†⋅", ::SiteType"vElectron") = premul(elop("F") * elop("Adagdn"))
-ITensors.op(::OpName"⋅FAdn†", ::SiteType"vElectron") = postmul(elop("F") * elop("Adagdn"))
+function ITensors.op(::OpName"FAdn†⋅", st::SiteType"vElectron")
+    return premul(elop("F") * elop("Adagdn"), st)
+end
+function ITensors.op(::OpName"⋅FAdn†", st::SiteType"vElectron")
+    return postmul(elop("F") * elop("Adagdn"), st)
+end
 
-ITensors.op(::OpName"Adn†F⋅", ::SiteType"vElectron") = premul(elop("Adagdn") * elop("F"))
-ITensors.op(::OpName"⋅Adn†F", ::SiteType"vElectron") = postmul(elop("Adagdn") * elop("F"))
+function ITensors.op(::OpName"Adn†F⋅", st::SiteType"vElectron")
+    return premul(elop("Adagdn") * elop("F"), st)
+end
+function ITensors.op(::OpName"⋅Adn†F", st::SiteType"vElectron")
+    return postmul(elop("Adagdn") * elop("F"), st)
+end
