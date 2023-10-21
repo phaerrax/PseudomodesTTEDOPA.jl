@@ -788,3 +788,50 @@ Return a list of Strings "(a,b)" formed by all adjacent items in `v`.
 function consecutivepairs(v::AbstractVector)
     return string.("(", v[1:(end - 1)], ",", v[2:end], ")")
 end
+
+"""
+    try_op(on::OpName, st::SiteType; kwargs...)
+
+Return the matrix of an ITensor operator, if it exists, trying first the
+```julia
+op(::OpName, ::SiteType; kwargs...)
+```
+syntax, and then
+```julia
+op!(::ITensor, ::OpName, ::SiteType, ::Index...; kwargs...)
+```
+if the former returns nothing.
+"""
+function try_op(on::OpName, st::SiteType; kwargs...)
+    stname = String(ITensors.tag(st))
+    opstring = String(ITensors.name(on))
+    # Try calling a function of the form:
+    #    op(::OpName, ::SiteType; kwargs...)
+    # which returns a Julia matrix
+    mat = ITensors.op(on, st; kwargs...)
+    if isnothing(mat)
+        # Otherwise try calling a function of the form
+        #    op!(::ITensor, ::OpName, ::SiteType, ::Index...; kwargs...)
+        dummy = siteind(stname)
+        Op = ITensor(prime(dummy), ITensors.dag(dummy))
+        r = ITensors.op!(Op, on, st, dummy; kwargs...)
+        if isnothing(r)
+            throw(
+                  ArgumentError(
+                                "Overload of \"op\" or \"op!\" functions not found for " *
+                                "operator name \"$opstring\" and Index tag $(tags(dummy)).",
+                               ),
+                 )
+        end
+        mat = matrix(Op)
+    end
+    if isnothing(mat)
+        throw(
+              ArgumentError(
+                            "Overload of \"op\" or \"op!\" functions not found for operator " *
+                            "name \"$opstring\" and Index tag \"$stname\".",
+                           ),
+             )
+    end
+    return mat
+end

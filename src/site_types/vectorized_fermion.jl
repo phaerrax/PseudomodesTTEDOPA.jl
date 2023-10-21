@@ -27,15 +27,6 @@ function vop(on::AbstractString, ::SiteType"vFermion")
     )
 end
 
-# Operator dispatch
-# =================
-function premultiply(mat, ::SiteType"vFermion")
-    return PseudomodesTTEDOPA.vec(x -> mat * x, gellmannbasis(2))
-end
-function postmultiply(mat, ::SiteType"vFermion")
-    return PseudomodesTTEDOPA.vec(x -> x * mat, gellmannbasis(2))
-end
-
 # States
 # ------
 
@@ -114,8 +105,15 @@ function ITensors.state(::StateName"vecId", st::SiteType"vFermion")
     return ITensors.state(StateName("vId"), st)
 end
 
-# Operators acting on vectorised spins
-# ------------------------------------
+# Operator dispatch
+# =================
+function premultiply(mat, ::SiteType"vFermion")
+    return PseudomodesTTEDOPA.vec(x -> mat * x, gellmannbasis(2))
+end
+function postmultiply(mat, ::SiteType"vFermion")
+    return PseudomodesTTEDOPA.vec(x -> x * mat, gellmannbasis(2))
+end
+
 function ITensors.op(::OpName"Id", ::SiteType"Fermion")
     return Matrix(1.0I, 2, 2)
 end
@@ -152,66 +150,13 @@ function ITensors.op(on::OpName, st::SiteType"vFermion"; kwargs...)
         # name == "⋅A" -> on1 is an empty string
         # name == "A⋅" -> on2 is an empty string
         if on1 == ""
-            # Try calling a function of the form:
-            #    op(::OpName, ::SiteType; kwargs...)
-            # which returns a Julia matrix
-            mat = ITensors.op(OpName(on2), SiteType("Fermion"); kwargs...)
-            if isnothing(mat)
-                # Otherwise try calling a function of the form
-                #    op!(::ITensor, ::OpName, ::SiteType, ::Index...; kwargs...)
-                dummy = siteind("Fermion")
-                x = ITensor(prime(dummy), ITensors.dag(dummy))
-                r = ITensors.op!(x, OpName(on2), SiteType("Fermion"), dummy; kwargs...)
-                if isnothing(r)
-                    throw(
-                        ArgumentError(
-                            "Overload of \"op\" or \"op!\" functions not found for " *
-                            "operator name \"$on2\" and Index tag $(tags(dummy)).",
-                        ),
-                    )
-                end
-                mat = matrix(x)
-            end
-            if isnothing(mat)
-                throw(
-                    ArgumentError(
-                        "Overload of \"op\" or \"op!\" functions not found for operator " *
-                        "name \"$name\" and Index tag \"Fermion\".",
-                    ),
-                )
-            end
+            mat = try_op(OpName(on2), SiteType("Fermion"); kwargs...)
             return postmultiply(mat, st)
         elseif on2 == ""
-            # Try calling a function of the form:
-            #    op(::OpName, ::SiteType; kwargs...)
-            # which returns a Julia matrix
-            mat = ITensors.op(OpName(on1), SiteType("Fermion"); kwargs...)
-            if isnothing(mat)
-                # Otherwise try calling a function of the form
-                #    op!(::ITensor, ::OpName, ::SiteType, ::Index...; kwargs...)
-                dummy = siteind("Fermion")
-                x = ITensor(prime(dummy), ITensors.dag(dummy))
-                r = ITensors.op!(x, OpName(on1), SiteType("Fermion"), dummy; kwargs...)
-                if isnothing(r)
-                    throw(
-                        ArgumentError(
-                            "Overload of \"op\" or \"op!\" functions not found for " *
-                            "operator name \"$on1\" and Index tag $(tags(dummy)).",
-                        ),
-                    )
-                end
-                mat = matrix(x)
-            end
-            if isnothing(mat)
-                throw(
-                    ArgumentError(
-                        "Overload of \"op\" or \"op!\" functions not found for operator " *
-                        "name \"$name\" and Index tag \"Fermion\".",
-                    ),
-                )
-            end
+            mat = try_op(OpName(on1), SiteType("Fermion"); kwargs...)
             return premultiply(mat, st)
         else
+            # This should logically never happen but, just in case, we throw an error.
             error("Unknown error with operator name $name")
         end
     else

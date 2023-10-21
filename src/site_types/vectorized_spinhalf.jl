@@ -39,14 +39,10 @@ function ITensors.state(sn::StateName, st::SiteType"HvS=1/2"; kwargs...)
     return ITensors.state(sn, ITensors.alias(st); kwargs...)
 end
 
-function ITensors.op(
-    on::OpName, st::SiteType"vecS=1/2"; kwargs...
-)
+function ITensors.op(on::OpName, st::SiteType"vecS=1/2"; kwargs...)
     return ITensors.op(on, ITensors.alias(st); kwargs...)
 end
-function ITensors.op(
-    on::OpName, st::SiteType"HvS=1/2"; kwargs...
-)
+function ITensors.op(on::OpName, st::SiteType"HvS=1/2"; kwargs...)
     return ITensors.op(on, ITensors.alias(st); kwargs...)
 end
 
