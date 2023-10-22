@@ -279,8 +279,8 @@ function exchange_interaction(::SiteType"vFermion", site1::Int, site2::Int)
     ℓ = OpSum()
     jws = jwstring(; start=site1, stop=site2)
     ℓ += (
-        gkslcommutator("σ+", site1, jws..., "σ-", site2) +
-        gkslcommutator("σ-", site1, jws..., "σ+", site2)
+        gkslcommutator("A†", site1, jws..., "A", site2) +
+        gkslcommutator("A", site1, jws..., "A†", site2)
     )
     return ℓ
 end

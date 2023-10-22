@@ -114,6 +114,18 @@ function postmultiply(mat, ::SiteType"vFermion")
     return PseudomodesTTEDOPA.vec(x -> x * mat, gellmannbasis(2))
 end
 
+function ITensors.op(::OpName"A", ::SiteType"Fermion")
+    return [
+            0.0 1.0
+            0.0 0.0
+           ]
+end
+function ITensors.op(::OpName"A†", ::SiteType"Fermion")
+    return [
+            0.0 0.0
+            1.0 0.0
+           ]
+end
 function ITensors.op(::OpName"Id", ::SiteType"Fermion")
     return Matrix(1.0I, 2, 2)
 end
