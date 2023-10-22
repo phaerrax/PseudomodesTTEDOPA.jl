@@ -95,8 +95,8 @@ function spin_chain(
         jws = jwstring(; start=site1, stop=site2)
         ℓ +=
             coups[j] * (
-                gkslcommutator("σ+", site1, jws..., "σ-", site2) +
-                gkslcommutator("σ-", site1, jws..., "σ+", site2)
+                gkslcommutator("A†", site1, jws..., "A", site2) +
+                gkslcommutator("A", site1, jws..., "A†", site2)
             )
     end
     return ℓ
