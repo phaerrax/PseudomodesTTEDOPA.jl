@@ -104,6 +104,91 @@ function exchange_interaction(
     return ℓ
 end
 
+function exchange_interaction(
+    ::SiteType"Electron",
+    ::SiteType"Fermion",
+    electron_site::Int,
+    fermion_site::Int;
+    coupling_constant_up=1.0,
+    coupling_constant_dn=1.0,
+)
+    h = OpSum()
+
+    jws = jwstring(; start=electron_site, stop=fermion_site)
+
+    h += coupling_constant_up, "a†↑ * F↓", electron_site, jws..., "a", fermion_site
+    h += conj(coupling_constant_up), "a↑ * F↓", electron_site, jws..., "a†", fermion_site
+    h += coupling_constant_dn, "a†↓", electron_site, jws..., "a", fermion_site
+    h += conj(coupling_constant_dn), "a↓", electron_site, jws..., "a†", fermion_site
+
+    return h
+end
+
+function exchange_interaction(
+    ::SiteType"Fermion",
+    ::SiteType"Electron",
+    fermion_site::Int;
+    electron_site::Int,
+    coupling_constant_up=1.0,
+    coupling_constant_dn=1.0,
+)
+    h = OpSum()
+
+    jws = jwstring(; start=electron_site, stop=fermion_site)
+
+    h += coupling_constant_up, "a", fermion_site, jws..., "a†↑", electron_site
+    h += conj(coupling_constant_up), "a†", fermion_site, jws..., "a↑", electron_site
+    h += coupling_constant_dn, "a", fermion_site, jws..., "F↑ * a†↓", electron_site
+    h += conj(coupling_constant_dn), "a†", fermion_site, jws..., "F↑ * a↓", electron_site
+
+    return h
+end
+
+function exchange_interaction(
+    ::SiteType"vElectron",
+    ::SiteType"vFermion",
+    electron_site::Int,
+    fermion_site::Int,
+    coupling_constant_up=1.0,
+    coupling_constant_dn=1.0,
+)
+    jws = jwstring(; start=electron_site, stop=fermion_site)
+    return (
+        coupling_constant_up * gkslcommutator("Aup†F", dot_site, jws..., "a", other_site) -
+        conj(coupling_constant_up) *
+        gkslcommutator("AupF", dot_site, jws..., "a†", other_site) +
+        coupling_constant_dn * gkslcommutator("Adn†", dot_site, jws..., "a", other_site) -
+        conj(coupling_constant_dn) *
+        gkslcommutator("Adn", dot_site, jws..., "a†", other_site)
+    )
+end
+
+function exchange_interaction(
+    ::SiteType"vFermion",
+    ::SiteType"vElectron",
+    fermion_site::Int,
+    electron_site::Int,
+    coupling_constant_up=1.0,
+    coupling_constant_dn=1.0,
+)
+    jws = jwstring(; start=electron_site, stop=fermion_site)
+    return (
+        conj(coupling_constant_up) *
+        gkslcommutator("a", fermion_site, jws..., "Aup†", electron_site) -
+        coupling_constant_up *
+        gkslcommutator("a†", fermion_site, jws..., "Aup", electron_site) +
+        conj(coupling_constant_dn) *
+        gkslcommutator("a", fermion_site, jws..., "FAdn†", electron_site) -
+        coupling_constant_dn *
+        gkslcommutator("a†", fermion_site, jws..., "FAdn", electron_site)
+    )
+    # TODO: creare "FdnAdn" e simili
+    # coupling_constant_up, "a", fermion_site, jws..., "a†↑", electron_site
+    # conj(coupling_constant_up), "a†", fermion_site, jws..., "a↑", electron_site
+    # coupling_constant_dn, "a", fermion_site, jws..., "F↑ * a†↓", electron_site
+    # conj(coupling_constant_dn), "a†", fermion_site, jws..., "F↑ * a↓", electron_site
+end
+
 ############################################################################################
 
 exchange_interaction_adjoint(::SiteType, ::SiteType, ::Int, ::Int; kwargs...) = nothing
@@ -150,6 +235,18 @@ end
 
 function exchange_interaction_adjoint(
     st1::SiteType"vElectron", st2::SiteType"vElectron", site1::Int, site2::Int; kwargs...
+)
+    return -exchange_interaction(st1, st2, site1, site2; kwargs...)
+end
+
+function exchange_interaction_adjoint(
+    st1::SiteType"vElectron", st2::SiteType"vFermion", site1::Int, site2::Int; kwargs...
+)
+    return -exchange_interaction(st1, st2, site1, site2; kwargs...)
+end
+
+function exchange_interaction_adjoint(
+    st1::SiteType"vFermion", st2::SiteType"vElectron", site1::Int, site2::Int; kwargs...
 )
     return -exchange_interaction(st1, st2, site1, site2; kwargs...)
 end
