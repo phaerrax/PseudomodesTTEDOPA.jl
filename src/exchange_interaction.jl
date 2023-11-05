@@ -1,6 +1,6 @@
 export exchange_interaction, exchange_interaction_adjoint, exchange_interaction′
 
-exchange_interaction(::SiteType, ::Int, ::Int; kwargs...) = nothing
+exchange_interaction(::SiteType, ::SiteType, ::Int, ::Int; kwargs...) = nothing
 
 """
     exchange_interaction(s1::Index, s2::Index; kwargs...)
@@ -9,17 +9,11 @@ Return an OpSum object encoding the Hamiltonian part ``-i[H, –]`` of an exchan
 between sites `s1` and `s2` term in a GKSL equation.
 """
 function exchange_interaction(s1::Index, s2::Index; kwargs...)
-    stypes1 = sitetypes(s1)
-    stypes2 = sitetypes(s2)
-    for st in stypes1
-        # Check if all sites have this type (otherwise skip this tag).
-        if st in stypes2
-            # If the type is shared, then try calling the function with it.
-            ℓ = exchange_interaction(st, sitenumber(s1), sitenumber(s2); kwargs...)
-            # If the result is something, return that result.
-            if !isnothing(ℓ)
-                return ℓ
-            end
+    for (st1, st2) in zip(sitetypes(s1), sitetypes(s2))
+        ℓ = exchange_interaction(st1, st2, sitenumber(s1), sitenumber(s2); kwargs...)
+        # If the result is something, return that result.
+        if !isnothing(ℓ)
+            return ℓ
         end
         # Otherwise, try again with another type from the initial ones.
     end
@@ -33,7 +27,7 @@ function exchange_interaction(s1::Index, s2::Index; kwargs...)
 end
 
 function exchange_interaction(
-    ::SiteType"Fermion", site1::Int, site2::Int; coupling_constant=1.0
+    ::SiteType"Fermion", ::SiteType"Fermion", site1::Int, site2::Int; coupling_constant=1.0
 )
     h = OpSum()
 
@@ -44,7 +38,11 @@ function exchange_interaction(
 end
 
 function exchange_interaction(
-    ::SiteType"vFermion", site1::Int, site2::Int, coupling_constant=1.0
+    ::SiteType"vFermion",
+    ::SiteType"vFermion",
+    site1::Int,
+    site2::Int,
+    coupling_constant=1.0,
 )
     ℓ = OpSum()
     jws = jwstring(; start=site1, stop=site2)
@@ -56,7 +54,7 @@ function exchange_interaction(
 end
 
 function exchange_interaction(
-    ::SiteType"vS=1/2", site1::Int, site2::Int, coupling_constant=1.0
+    ::SiteType"vS=1/2", ::SiteType"vS=1/2", site1::Int, site2::Int, coupling_constant=1.0
 )
     ℓ = OpSum()
     ℓ += (
@@ -67,6 +65,7 @@ function exchange_interaction(
 end
 
 function exchange_interaction(
+    ::SiteType"Electron",
     ::SiteType"Electron",
     site1::Int,
     site2::Int;
@@ -85,6 +84,7 @@ function exchange_interaction(
 end
 
 function exchange_interaction(
+    ::SiteType"vElectron",
     ::SiteType"vElectron",
     site1::Int,
     site2::Int;
@@ -106,7 +106,7 @@ end
 
 ############################################################################################
 
-exchange_interaction_adjoint(::SiteType, ::Int, ::Int; kwargs...) = nothing
+exchange_interaction_adjoint(::SiteType, ::SiteType, ::Int, ::Int; kwargs...) = nothing
 
 """
     exchange_interaction_adjoint(s1::Index, s2::Index; kwargs...)
@@ -115,17 +115,13 @@ Return an OpSum object encoding the adjoint of the Hamiltonian part ``-i[H, –]
 exchange interaction between sites `s1` and `s2` term in a GKSL equation.
 """
 function exchange_interaction_adjoint(s1::Index, s2::Index; kwargs...)
-    stypes1 = sitetypes(s1)
-    stypes2 = sitetypes(s2)
-    for st in stypes1
-        # Check if all sites have this type (otherwise skip this tag).
-        if st in stypes2
-            # If the type is shared, then try calling the function with it.
-            ℓ = exchange_interaction_adjoint(st, sitenumber(s1), sitenumber(s2); kwargs...)
-            # If the result is something, return that result.
-            if !isnothing(ℓ)
-                return ℓ
-            end
+    for (st1, st2) in zip(sitetypes(s1), sitetypes(s2))
+        ℓ = exchange_interaction_adjoint(
+            st1, st2, sitenumber(s1), sitenumber(s2); kwargs...
+        )
+        # If the result is something, return that result.
+        if !isnothing(ℓ)
+            return ℓ
         end
         # Otherwise, try again with another type from the initial ones.
     end
@@ -141,21 +137,21 @@ end
 # In the GKSL equation, the adjoint of -i[H,-] is simply i[H,-].
 
 function exchange_interaction_adjoint(
-    st::SiteType"vFermion", site1::Int, site2::Int; kwargs...
+    st1::SiteType"vFermion", st2::SiteType"vFermion", site1::Int, site2::Int; kwargs...
 )
-    return -exchange_interaction(st, site1, site2; kwargs...)
+    return -exchange_interaction(st1, st2, site1, site2; kwargs...)
 end
 
 function exchange_interaction_adjoint(
-    st::SiteType"vS=1/2", site1::Int, site2::Int; kwargs...
+    st1::SiteType"vS=1/2", st2::SiteType"vS=1/2", site1::Int, site2::Int; kwargs...
 )
-    return -exchange_interaction(st, site1, site2; kwargs...)
+    return -exchange_interaction(st1, st2, site1, site2; kwargs...)
 end
 
 function exchange_interaction_adjoint(
-    st::SiteType"vElectron", site1::Int, site2::Int; kwargs...
+    st1::SiteType"vElectron", st2::SiteType"vElectron", site1::Int, site2::Int; kwargs...
 )
-    return -exchange_interaction(st, site1, site2; kwargs...)
+    return -exchange_interaction(st1, st2, site1, site2; kwargs...)
 end
 
 const exchange_interaction′ = exchange_interaction_adjoint
