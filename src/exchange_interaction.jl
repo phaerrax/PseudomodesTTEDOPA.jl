@@ -47,8 +47,8 @@ function exchange_interaction(
     ℓ = OpSum()
     jws = jwstring(; start=site1, stop=site2)
     ℓ += (
-        coupling_constant * gkslcommutator("A†", site1, jws..., "A", site2) +
-        conj(coupling_constant) * gkslcommutator("A", site1, jws..., "A†", site2)
+        coupling_constant * gkslcommutator("a†", site1, jws..., "a", site2) +
+        conj(coupling_constant) * gkslcommutator("a", site1, jws..., "a†", site2)
     )
     return ℓ
 end

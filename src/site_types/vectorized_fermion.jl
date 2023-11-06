@@ -17,15 +17,15 @@ ITensors.space(::SiteType"vFermion") = 4
 # while a linear map L : Mat(ℂ²) → Mat(ℂ²) by the matrix ℓ such that
 #     ℓᵢⱼ = tr(Λᵢ L(Λⱼ)).
 
-function vstate(sn::AbstractString, ::SiteType"vFermion")
-    v = ITensors.state(StateName(sn), SiteType("Fermion"))
-    return PseudomodesTTEDOPA.vec(kron(v, v'), gellmannbasis(2))
-end
-function vop(on::AbstractString, ::SiteType"vFermion")
-    return PseudomodesTTEDOPA.vec(
-        ITensors.op(OpName(on), SiteType("Fermion")), gellmannbasis(2)
-    )
-end
+#function vstate(sn::AbstractString, ::SiteType"vFermion")
+#    v = ITensors.state(StateName(sn), SiteType("Fermion"))
+#    return PseudomodesTTEDOPA.vec(kron(v, v'), gellmannbasis(2))
+#end
+#function vop(on::AbstractString, ::SiteType"vFermion")
+#    return PseudomodesTTEDOPA.vec(
+#        ITensors.op(OpName(on), SiteType("Fermion")), gellmannbasis(2)
+#    )
+#end
 
 # States
 # ------
@@ -114,21 +114,18 @@ function postmultiply(mat, ::SiteType"vFermion")
     return PseudomodesTTEDOPA.vec(x -> x * mat, gellmannbasis(2))
 end
 
-function ITensors.op(::OpName"A", ::SiteType"Fermion")
-    return [
-            0.0 1.0
-            0.0 0.0
-           ]
-end
-function ITensors.op(::OpName"A†", ::SiteType"Fermion")
-    return [
-            0.0 0.0
-            1.0 0.0
-           ]
-end
-function ITensors.op(::OpName"Id", ::SiteType"Fermion")
-    return Matrix(1.0I, 2, 2)
-end
+#function ITensors.op(::OpName"A", ::SiteType"Fermion")
+#    return [
+#            0.0 1.0
+#            0.0 0.0
+#           ]
+#end
+#function ITensors.op(::OpName"A†", ::SiteType"Fermion")
+#    return [
+#            0.0 0.0
+#            1.0 0.0
+#           ]
+#end
 
 # The goal here is to define operators "A⋅" and "⋅A" in an automatic way whenever the
 # OpName "A" is defined for the Fermion site type.
