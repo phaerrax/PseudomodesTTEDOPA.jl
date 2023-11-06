@@ -1,6 +1,7 @@
 export exchange_interaction, exchange_interaction_adjoint, exchange_interaction′
 
 exchange_interaction(::SiteType, ::SiteType, ::Int, ::Int; kwargs...) = nothing
+
 """
     exchange_interaction(s1::Index, s2::Index; kwargs...)
 
@@ -44,7 +45,7 @@ function exchange_interaction(
     ::SiteType"vFermion",
     ::SiteType"vFermion",
     site1::Int,
-    site2::Int,
+    site2::Int;
     coupling_constant::Real=1.0,
 )
     ℓ = OpSum()
@@ -60,7 +61,7 @@ function exchange_interaction(
     ::SiteType"vS=1/2",
     ::SiteType"vS=1/2",
     site1::Int,
-    site2::Int,
+    site2::Int;
     coupling_constant::Real=1.0,
 )
     ℓ = OpSum()
@@ -138,7 +139,7 @@ function exchange_interaction(
     ::SiteType"vElectron",
     ::SiteType"vFermion",
     electron_site::Int,
-    fermion_site::Int,
+    fermion_site::Int;
     coupling_constant_up::Real=1.0,
     coupling_constant_dn::Real=1.0,
 )
@@ -188,7 +189,7 @@ function exchange_interaction(
     ::SiteType"vFermion",
     ::SiteType"vElectron",
     fermion_site::Int,
-    electron_site::Int,
+    electron_site::Int;
     coupling_constant_up::Real=1.0,
     coupling_constant_dn::Real=1.0,
 )
