@@ -15,6 +15,9 @@ end
 function ITensors.op!(Op::ITensor, on::OpName"adag", st::SiteType"Fermion", s::Index)
     return ITensors.op!(Op, OpName("Adag"), st, s)
 end
+function ITensors.op!(Op::ITensor, on::OpName"A†", st::SiteType"Fermion", s::Index)
+    return ITensors.op!(Op, OpName("Adag"), st, s)
+end
 function ITensors.op!(Op::ITensor, on::OpName"a†", st::SiteType"Fermion", s::Index)
     return ITensors.op!(Op, OpName("Adag"), st, s)
 end
