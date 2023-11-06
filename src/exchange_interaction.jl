@@ -1,7 +1,6 @@
 export exchange_interaction, exchange_interaction_adjoint, exchange_interaction′
 
 exchange_interaction(::SiteType, ::SiteType, ::Int, ::Int; kwargs...) = nothing
-
 """
     exchange_interaction(s1::Index, s2::Index; kwargs...)
 
@@ -91,16 +90,18 @@ function exchange_interaction(
     coupling_constant_up=1.0,
     coupling_constant_dn=1.0,
 )
-    # c↑ᵢ† c↑ᵢ₊₁ + c↑ᵢ₊₁† c↑ᵢ + c↓ᵢ† c↓ᵢ₊₁ + c↓ᵢ₊₁† c↓ᵢ =
-    # a↑ᵢ† Fᵢ a↑ᵢ₊₁ - a↑ᵢ Fᵢ a↑ᵢ₊₁† + a↓ᵢ† Fᵢ₊₁ a↓ᵢ₊₁ - a↓ᵢ Fᵢ₊₁ a↓ᵢ₊₁†
     ℓ = OpSum()
     jws = jwstring(; start=site1, stop=site2)
-    ℓ += (
-        coupling_constant_up * gkslcommutator("Aup†F", site1, jws..., "Aup", site2) -
-        conj(coupling_constant_up) * gkslcommutator("AupF", site1, jws..., "Aup†", site2) +
-        coupling_constant_dn * gkslcommutator("Adn†", site1, jws..., "FAdn", site2) -
-        conj(coupling_constant_dn) * gkslcommutator("Adn", site1, jws..., "FAdn†", site2)
-    )
+
+    ℓ += coupling_constant_up * gkslcommutator("Aup†F", site1, jws..., "Aup", site2)
+    ℓ += -conj(coupling_constant_up) * gkslcommutator("AupF", site1, jws..., "Aup†", site2)
+
+    ℓ += coupling_constant_dn * gkslcommutator("Adn†", site1, jws..., "FAdn", site2)
+    ℓ += -conj(coupling_constant_dn) * gkslcommutator("Adn", site1, jws..., "FAdn†", site2)
+    # Look out for minus signs:
+    #   (F * a↓)† = a†↓ * F† = -F * a†↓
+    #   (a†↑ * F)† = F† * a↑ = F * a↑ = -a↑ * F
+
     return ℓ
 end
 
@@ -113,11 +114,12 @@ function exchange_interaction(
     coupling_constant_dn=1.0,
 )
     h = OpSum()
-
     jws = jwstring(; start=electron_site, stop=fermion_site)
 
-    h += coupling_constant_up, "a†↑ * F↓", electron_site, jws..., "a", fermion_site
-    h += conj(coupling_constant_up), "a↑ * F↓", electron_site, jws..., "a†", fermion_site
+    h += coupling_constant_up, "a†↑ * F", electron_site, jws..., "a", fermion_site
+    h += -conj(coupling_constant_up), "a↑ * F", electron_site, jws..., "a†", fermion_site
+    # Look out for the minus sign: (a†↑ * F)† = F† * a↑ = F * a↑ = -a↑ * F
+
     h += coupling_constant_dn, "a†↓", electron_site, jws..., "a", fermion_site
     h += conj(coupling_constant_dn), "a↓", electron_site, jws..., "a†", fermion_site
 
@@ -125,68 +127,82 @@ function exchange_interaction(
 end
 
 function exchange_interaction(
+    ::SiteType"vElectron",
+    ::SiteType"vFermion",
+    electron_site::Int,
+    fermion_site::Int,
+    coupling_constant_up=1.0,
+    coupling_constant_dn=1.0,
+)
+    ℓ = OpSum()
+    jws = jwstring(; start=electron_site, stop=fermion_site)
+
+    ℓ +=
+        coupling_constant_up *
+        gkslcommutator("Aup†F", electron_site, jws..., "a", fermion_site)
+    ℓ +=
+        -conj(coupling_constant_up) *
+        gkslcommutator("AupF", electron_site, jws..., "a†", fermion_site)
+    # Look out for the minus sign: (a†↑ * F)† = F† * a↑ = F * a↑ = -a↑ * F
+
+    ℓ +=
+        coupling_constant_dn *
+        gkslcommutator("Adn†", electron_site, jws..., "a", fermion_site)
+    ℓ +=
+        conj(coupling_constant_dn) *
+        gkslcommutator("Adn", electron_site, jws..., "a†", fermion_site)
+
+    return ℓ
+end
+
+function exchange_interaction(
     ::SiteType"Fermion",
     ::SiteType"Electron",
-    fermion_site::Int;
-    electron_site::Int,
+    fermion_site::Int,
+    electron_site::Int;
     coupling_constant_up=1.0,
     coupling_constant_dn=1.0,
 )
     h = OpSum()
-
     jws = jwstring(; start=electron_site, stop=fermion_site)
 
-    h += coupling_constant_up, "a", fermion_site, jws..., "a†↑", electron_site
     h += conj(coupling_constant_up), "a†", fermion_site, jws..., "a↑", electron_site
-    h += coupling_constant_dn, "a", fermion_site, jws..., "F↑ * a†↓", electron_site
-    h += conj(coupling_constant_dn), "a†", fermion_site, jws..., "F↑ * a↓", electron_site
+    h += coupling_constant_up, "a", fermion_site, jws..., "a†↑", electron_site
+
+    h += conj(coupling_constant_dn), "a†", fermion_site, jws..., "F * a↓", electron_site
+    h += -coupling_constant_dn, "a", fermion_site, jws..., "F * a†↓", electron_site
+    # Look out for the minus sign: (F * a↓)† = a†↓ * F† = -F * a†↓
 
     return h
 end
 
 function exchange_interaction(
-    ::SiteType"vElectron",
     ::SiteType"vFermion",
-    electron_site::Int,
+    ::SiteType"vElectron",
     fermion_site::Int,
+    electron_site::Int,
     coupling_constant_up=1.0,
     coupling_constant_dn=1.0,
 )
+    ℓ = OpSum()
     jws = jwstring(; start=electron_site, stop=fermion_site)
-    return (
-        coupling_constant_up * gkslcommutator("Aup†F", dot_site, jws..., "a", other_site) -
-        conj(coupling_constant_up) *
-        gkslcommutator("AupF", dot_site, jws..., "a†", other_site) +
-        coupling_constant_dn * gkslcommutator("Adn†", dot_site, jws..., "a", other_site) -
-        conj(coupling_constant_dn) *
-        gkslcommutator("Adn", dot_site, jws..., "a†", other_site)
-    )
-end
 
-function exchange_interaction(
-    ::SiteType"vFermion",
-    ::SiteType"vElectron",
-    fermion_site::Int,
-    electron_site::Int,
-    coupling_constant_up=1.0,
-    coupling_constant_dn=1.0,
-)
-    jws = jwstring(; start=electron_site, stop=fermion_site)
-    return (
+    ℓ +=
         conj(coupling_constant_up) *
-        gkslcommutator("a", fermion_site, jws..., "Aup†", electron_site) -
+        gkslcommutator("a†", fermion_site, jws..., "Aup", electron_site)
+    ℓ +=
         coupling_constant_up *
-        gkslcommutator("a†", fermion_site, jws..., "Aup", electron_site) +
+        gkslcommutator("a", fermion_site, jws..., "Aup†", electron_site)
+
+    ℓ +=
         conj(coupling_constant_dn) *
-        gkslcommutator("a", fermion_site, jws..., "FAdn†", electron_site) -
-        coupling_constant_dn *
         gkslcommutator("a†", fermion_site, jws..., "FAdn", electron_site)
-    )
-    # TODO: creare "FdnAdn" e simili
-    # coupling_constant_up, "a", fermion_site, jws..., "a†↑", electron_site
-    # conj(coupling_constant_up), "a†", fermion_site, jws..., "a↑", electron_site
-    # coupling_constant_dn, "a", fermion_site, jws..., "F↑ * a†↓", electron_site
-    # conj(coupling_constant_dn), "a†", fermion_site, jws..., "F↑ * a↓", electron_site
+    ℓ +=
+        -coupling_constant_dn *
+        gkslcommutator("a", fermion_site, jws..., "FAdn†", electron_site)
+    # Look out for the minus sign: (F * a↓)† = a†↓ * F† = -F * a†↓
+
+    return ℓ
 end
 
 ############################################################################################
