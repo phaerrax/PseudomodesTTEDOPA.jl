@@ -1,4 +1,13 @@
 """
+    statenamestring(sn::StateName{T}) where T
+
+Return the name of the state "sn" as a string.
+"""
+function statenamestring(sn::StateName{T}) where T
+    return string(T)
+end
+
+"""
     sitenumber(i::Index)
 
 Return the site number of the given Index, i.e. the number in the "n=N" tag.
