@@ -11,34 +11,34 @@ of Hermitian traceless matrices together with the identity matrix.
 ITensors.space(::SiteType"vElectron") = 16
 
 # Shorthand notation:
-elop(on::AbstractString) = ITensors.op(OpName(on), SiteType("Electron"))
-function vstate(sn::AbstractString, ::SiteType"vElectron")
-    v = ITensors.state(StateName(sn), SiteType("Electron"))
+function vstate(sn::StateName, ::SiteType"vElectron")
+    v = ITensors.state(sn, SiteType("Electron"))
     return vec(kron(v, v'), gellmannbasis(4))
 end
-function vop(on::AbstractString, ::SiteType"vElectron")
+function vop(sn::StateName, ::SiteType"vElectron")
+    sn = statenamestring(sn)
+    on = sn[1] == 'v' ? sn[2:end] : sn
     return vec(ITensors.op(OpName(on), SiteType("Electron")), gellmannbasis(4))
 end
 
 # States (actual ones)
 # --------------------
-ITensors.state(::StateName"Emp", st::SiteType"vElectron") = vstate("Emp", st)
-ITensors.state(::StateName"Up", st::SiteType"vElectron") = vstate("Up", st)
-ITensors.state(::StateName"Dn", st::SiteType"vElectron") = vstate("Dn", st)
-ITensors.state(::StateName"UpDn", st::SiteType"vElectron") = vstate("UpDn", st)
+ITensors.state(sn::StateName"Emp", st::SiteType"vElectron") = vstate(sn, st)
+ITensors.state(sn::StateName"Up", st::SiteType"vElectron") = vstate(sn, st)
+ITensors.state(sn::StateName"Dn", st::SiteType"vElectron") = vstate(sn, st)
+ITensors.state(sn::StateName"UpDn", st::SiteType"vElectron") = vstate(sn, st)
 
 # States representing vectorised operators
 # ----------------------------------------
-function ITensors.op(::OpName"Id", ::SiteType"Electron") # ITensors doesn't define this
-    return Matrix(1.0I, 4, 4)
-end
+ITensors.state(sn::StateName"vId", st::SiteType"vElectron") = vop(sn, st)
+ITensors.state(sn::StateName"vNup", st::SiteType"vElectron") = vop(sn, st)
+ITensors.state(sn::StateName"vNdn", st::SiteType"vElectron") = vop(sn, st)
+ITensors.state(sn::StateName"vNtot", st::SiteType"vElectron") = vop(sn, st)
+ITensors.state(sn::StateName"vNupNdn", st::SiteType"vElectron") = vop(sn, st)
 
-ITensors.state(::StateName"vId", st::SiteType"vElectron") = vop("Id", st)
-ITensors.state(::StateName"vecId", st::SiteType"vElectron") = vop("Id", st)
-ITensors.state(::StateName"vNup", st::SiteType"vElectron") = vop("Nup", st)
-ITensors.state(::StateName"vNdn", st::SiteType"vElectron") = vop("Ndn", st)
-ITensors.state(::StateName"vNtot", st::SiteType"vElectron") = vop("Ntot", st)
-ITensors.state(::StateName"vNupNdn", st::SiteType"vElectron") = vop("NupNdn", st)
+function ITensors.state(::StateName"vecId", ::SiteType"vElectron")
+    return ITensors.state(StateName("vId"), SiteType("vElectron"))
+end
 
 # Operators acting on vectorised spins
 # ------------------------------------
