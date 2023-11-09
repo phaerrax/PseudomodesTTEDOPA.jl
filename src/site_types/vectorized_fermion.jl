@@ -114,19 +114,6 @@ function postmultiply(mat, ::SiteType"vFermion")
     return PseudomodesTTEDOPA.vec(x -> x * mat, gellmannbasis(2))
 end
 
-#function ITensors.op(::OpName"A", ::SiteType"Fermion")
-#    return [
-#            0.0 1.0
-#            0.0 0.0
-#           ]
-#end
-#function ITensors.op(::OpName"A†", ::SiteType"Fermion")
-#    return [
-#            0.0 0.0
-#            1.0 0.0
-#           ]
-#end
-
 # The goal here is to define operators "A⋅" and "⋅A" in an automatic way whenever the
 # OpName "A" is defined for the Fermion site type.
 # This is handy, but unless we find a better way to define this function this means that
