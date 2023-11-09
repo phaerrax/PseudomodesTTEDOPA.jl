@@ -10,11 +10,6 @@ of Hermitian traceless matrices together with the identity matrix.
 """
 ITensors.space(::SiteType"vElectron") = 16
 
-# An element A ∈ Mat(ℂ⁴) is representeb by the a vector v such that
-#     vᵢ = tr(Λᵢ A),
-# while a linear map L : Mat(ℂ⁴) → Mat(ℂ⁴) by the matrix ℓ such that
-#     ℓᵢⱼ = tr(Λᵢ L(Λⱼ)).
-
 # Shorthand notation:
 elop(on::AbstractString) = ITensors.op(OpName(on), SiteType("Electron"))
 function vstate(sn::AbstractString, ::SiteType"vElectron")
@@ -24,8 +19,6 @@ end
 function vop(on::AbstractString, ::SiteType"vElectron")
     return vec(ITensors.op(OpName(on), SiteType("Electron")), gellmannbasis(4))
 end
-premul(mat, ::SiteType"vElectron") = vec(x -> mat * x, gellmannbasis(4))
-postmul(mat, ::SiteType"vElectron") = vec(x -> x * mat, gellmannbasis(4))
 
 # States (actual ones)
 # --------------------
@@ -49,72 +42,55 @@ ITensors.state(::StateName"vNupNdn", st::SiteType"vElectron") = vop("NupNdn", st
 
 # Operators acting on vectorised spins
 # ------------------------------------
-# If
-#   L : Mat(ℂ⁴) ⊗ Mat(ℂ⁴) → Mat(ℂ⁴) ⊗ Mat(ℂ⁴)
-# can be written as
-#   L₁ ⊗ L₂ for Lᵢ : Mat(ℂ⁴) → Mat(ℂ⁴)
-# then
-#   ⟨êᵢ₁ ⊗ êᵢ₂, L(êⱼ₁ ⊗ êⱼ₂)⟩ = ⟨êᵢ₁, L₁(êⱼ₁)⟩ ⟨êᵢ₂, L₂(êⱼ₂)⟩.
-
-function ITensors.op(::OpName"Id", ::SiteType"vElectron")
-    return Matrix(1.0I, 16, 16)
+function premultiply(mat, ::SiteType"vElectron")
+    return PseudomodesTTEDOPA.vec(x -> mat * x, gellmannbasis(4))
 end
-ITensors.op(::OpName"⋅Id", st::SiteType"vElectron") = ITensors.op(OpName("Id"), st)
-ITensors.op(::OpName"Id⋅", st::SiteType"vElectron") = ITensors.op(OpName("Id"), st)
-
-# Number operators
-ITensors.op(::OpName"Nup⋅", st::SiteType"vElectron") = premul(elop("Nup"), st)
-ITensors.op(::OpName"⋅Nup", st::SiteType"vElectron") = postmul(elop("Nup"), st)
-
-ITensors.op(::OpName"Ndn⋅", st::SiteType"vElectron") = premul(elop("Ndn"), st)
-ITensors.op(::OpName"⋅Ndn", st::SiteType"vElectron") = postmul(elop("Ndn"), st)
-
-ITensors.op(::OpName"Ntot⋅", st::SiteType"vElectron") = premul(elop("Ntot"), st)
-ITensors.op(::OpName"⋅Ntot", st::SiteType"vElectron") = postmul(elop("Ntot"), st)
-
-ITensors.op(::OpName"NupNdn⋅", st::SiteType"vElectron") = premul(elop("NupNdn"), st)
-ITensors.op(::OpName"⋅NupNdn", st::SiteType"vElectron") = postmul(elop("NupNdn"), st)
-
-# Jordan-Wigner string operator
-ITensors.op(::OpName"F⋅", st::SiteType"vElectron") = premul(elop("F"), st)
-ITensors.op(::OpName"⋅F", st::SiteType"vElectron") = postmul(elop("F"), st)
-
-# Creation and annihilation operators (with and without strings, as needed)
-ITensors.op(::OpName"Aup⋅", st::SiteType"vElectron") = premul(elop("Aup"), st)
-ITensors.op(::OpName"⋅Aup", st::SiteType"vElectron") = postmul(elop("Aup"), st)
-
-ITensors.op(::OpName"Aup†⋅", st::SiteType"vElectron") = premul(elop("Adagup"), st)
-ITensors.op(::OpName"⋅Aup†", st::SiteType"vElectron") = postmul(elop("Adagup"), st)
-
-function ITensors.op(::OpName"Aup†F⋅", st::SiteType"vElectron")
-    return premul(elop("Adagup") * elop("F"), st)
-end
-function ITensors.op(::OpName"⋅Aup†F", st::SiteType"vElectron")
-    return postmul(elop("Adagup") * elop("F"), st)
+function postmultiply(mat, ::SiteType"vElectron")
+    return PseudomodesTTEDOPA.vec(x -> x * mat, gellmannbasis(4))
 end
 
-ITensors.op(::OpName"AupF⋅", st::SiteType"vElectron") = premul(elop("Aup") * elop("F"), st)
-ITensors.op(::OpName"⋅AupF", st::SiteType"vElectron") = postmul(elop("Aup") * elop("F"), st)
-
-ITensors.op(::OpName"Adn⋅", st::SiteType"vElectron") = premul(elop("Adn"), st)
-ITensors.op(::OpName"⋅Adn", st::SiteType"vElectron") = postmul(elop("Adn"), st)
-
-ITensors.op(::OpName"Adn†⋅", st::SiteType"vElectron") = premul(elop("Adagdn"), st)
-ITensors.op(::OpName"⋅Adn†", st::SiteType"vElectron") = postmul(elop("Adagdn"), st)
-
-ITensors.op(::OpName"FAdn⋅", st::SiteType"vElectron") = premul(elop("F") * elop("Adn"), st)
-ITensors.op(::OpName"⋅FAdn", st::SiteType"vElectron") = postmul(elop("F") * elop("Adn"), st)
-
-function ITensors.op(::OpName"FAdn†⋅", st::SiteType"vElectron")
-    return premul(elop("F") * elop("Adagdn"), st)
-end
-function ITensors.op(::OpName"⋅FAdn†", st::SiteType"vElectron")
-    return postmul(elop("F") * elop("Adagdn"), st)
-end
-
-function ITensors.op(::OpName"Adn†F⋅", st::SiteType"vElectron")
-    return premul(elop("Adagdn") * elop("F"), st)
-end
-function ITensors.op(::OpName"⋅Adn†F", st::SiteType"vElectron")
-    return postmul(elop("Adagdn") * elop("F"), st)
+# The goal here is to define operators "A⋅" and "⋅A" in an automatic way whenever the
+# OpName "A" is defined for the Electron site type.
+# This is handy, but unless we find a better way to define this function this means that
+# _every_ operator has to be written this way; we cannot just return op(on, st) at the end
+# if no "⋅" is found, otherwise an infinite loop would be entered.
+# We make an exception, though, for "Id" since it is an essential operator, and something
+# would probably break if it weren't defined.
+function ITensors.op(on::OpName, st::SiteType"vElectron"; kwargs...)
+    name = strip(String(ITensors.name(on))) # Remove extra whitespace
+    if name == "Id"
+        return Matrix(1.0I, 16, 16)
+    end
+    dotloc = findfirst("⋅", name)
+    # This returns the position of the cdot in the operator name String.
+    # It is `nothing` if no cdot is found.
+    if !isnothing(dotloc)
+        on1, on2 = nothing, nothing
+        on1 = name[1:prevind(name, dotloc.start)]
+        on2 = name[nextind(name, dotloc.start):end]
+        # If the OpName `on` is written correctly, i.e. it is either "A⋅" or "⋅A" for some
+        # A, then either `on1` or `on2` has to be empty (not both, not neither of them).
+        if (on1 == "" && on2 == "") || (on1 != "" && on2 != "")
+            throw(
+                ArgumentError(
+                    "Invalid operator name: $name. Operator name is not \"Id\" or of the " *
+                    "form \"A⋅\" or \"⋅A\"",
+                ),
+            )
+        end
+        # name == "⋅A" -> on1 is an empty string
+        # name == "A⋅" -> on2 is an empty string
+        if on1 == ""
+            mat = try_op(OpName(on2), SiteType("Electron"); kwargs...)
+            return postmultiply(mat, st)
+        elseif on2 == ""
+            mat = try_op(OpName(on1), SiteType("Electron"); kwargs...)
+            return premultiply(mat, st)
+        else
+            # This should logically never happen but, just in case, we throw an error.
+            error("Unknown error with operator name $name")
+        end
+    else
+        error("Operator name $name is not \"Id\" or of the form \"A⋅\" or \"⋅A\"")
+    end
 end
