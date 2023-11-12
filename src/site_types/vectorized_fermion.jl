@@ -17,92 +17,44 @@ ITensors.space(::SiteType"vFermion") = 4
 # while a linear map L : Mat(ℂ²) → Mat(ℂ²) by the matrix ℓ such that
 #     ℓᵢⱼ = tr(Λᵢ L(Λⱼ)).
 
-#function vstate(sn::AbstractString, ::SiteType"vFermion")
-#    v = ITensors.state(StateName(sn), SiteType("Fermion"))
-#    return PseudomodesTTEDOPA.vec(kron(v, v'), gellmannbasis(2))
-#end
-#function vop(on::AbstractString, ::SiteType"vFermion")
-#    return PseudomodesTTEDOPA.vec(
-#        ITensors.op(OpName(on), SiteType("Fermion")), gellmannbasis(2)
-#    )
-#end
-
-# States
-# ------
-
-# "Up" = ê₊ ⊗ ê₊' = ⎡1⎤ ⊗ [1 0]
-#                   ⎣0⎦
-# "Dn" = ê₋ ⊗ ê₋' = ⎡0⎤ ⊗ [0 1]
-#                   ⎣1⎦
-# We don't use them explicitly, however, but we refer to how ITensors implements
-# them; this way, we are sure that the operators act correctly on these states.
-function ITensors.state(sn::StateName"Up", ::SiteType"vFermion")
-    v = ITensors.state(sn, SiteType("S=1/2"))
-    return vec(kron(v, v'), gellmannbasis(2))
+# Shorthand notation:
+function vstate(sn::StateName, ::SiteType"vFermion")
+    v = ITensors.state(sn, SiteType("Fermion"))
+    return PseudomodesTTEDOPA.vec(kron(v, v'), gellmannbasis(2))
 end
-function ITensors.state(sn::StateName"Dn", ::SiteType"vFermion")
-    v = ITensors.state(sn, SiteType("S=1/2"))
-    return vec(kron(v, v'), gellmannbasis(2))
+function vop(sn::StateName, ::SiteType"vFermion")
+    sn = statenamestring(sn)
+    on = sn[1] == 'v' ? sn[2:end] : sn
+    return PseudomodesTTEDOPA.vec(try_op(OpName(on), SiteType("Fermion")), gellmannbasis(2))
+end
+
+# States (actual ones)
+# --------------------
+ITensors.state(sn::StateName"Emp", st::SiteType"vFermion") = vstate(sn, st)
+ITensors.state(sn::StateName"Occ", st::SiteType"vFermion") = vstate(sn, st)
+
+function ITensors.state(::StateName"Up", st::SiteType"vFermion")
+    return ITensors.state(StateName("Occ"), st)
+end
+function ITensors.state(::StateName"Dn", st::SiteType"vFermion")
+    return ITensors.state(StateName("Emp"), st)
 end
 
 # States representing vectorised operators
 # ----------------------------------------
-function ITensors.state(::StateName"vSx", ::SiteType"vFermion")
-    return vec(ITensors.op(OpName("Sx"), SiteType("S=1/2")), gellmannbasis(2))
-end
-function ITensors.state(::StateName"vSy", ::SiteType"vFermion")
-    return vec(ITensors.op(OpName("Sy"), SiteType("S=1/2")), gellmannbasis(2))
-end
-function ITensors.state(::StateName"vSz", ::SiteType"vFermion")
-    return vec(ITensors.op(OpName("Sz"), SiteType("S=1/2")), gellmannbasis(2))
-end
+ITensors.state(sn::StateName"vId", st::SiteType"vFermion") = vop(sn, st)
+ITensors.state(sn::StateName"vN", st::SiteType"vFermion") = vop(sn, st)
 
-function ITensors.state(::StateName"vσx", st::SiteType"vFermion")
-    return 2 * ITensors.state(StateName("vSx"), st)
-end
-function ITensors.state(::StateName"vσy", st::SiteType"vFermion")
-    return 2 * ITensors.state(StateName("vSy"), st)
-end
-function ITensors.state(::StateName"vσz", st::SiteType"vFermion")
-    return 2 * ITensors.state(StateName("vSz"), st)
-end
+ITensors.state(sn::StateName"vA", st::SiteType"vFermion") = vop(sn, st)
+ITensors.state(sn::StateName"va", st::SiteType"vFermion") = vop(sn, st)
 
-function ITensors.state(::StateName"vId", ::SiteType"vFermion")
-    return vec(ITensors.op(OpName("Id"), SiteType("S=1/2")), gellmannbasis(2))
-end
-function ITensors.state(::StateName"vC", ::SiteType"vFermion")
-    # FIXME: add Jordan-Wigner strings
-    return vec(ITensors.op(OpName("S-"), SiteType("S=1/2")), gellmannbasis(2))
-end
-function ITensors.state(::StateName"vCdag", ::SiteType"vFermion")
-    # FIXME: add Jordan-Wigner strings
-    return vec(ITensors.op(OpName("S+"), SiteType("S=1/2")), gellmannbasis(2))
-end
-function ITensors.state(::StateName"vN", ::SiteType"vFermion")
-    return vec(ITensors.op(OpName("N"), SiteType("S=1/2")), gellmannbasis(2))
-end
+ITensors.state(sn::StateName"vAdag", st::SiteType"vFermion") = vop(sn, st)
+ITensors.state(sn::StateName"vadag", st::SiteType"vFermion") = vop(sn, st)
+ITensors.state(sn::StateName"vA†", st::SiteType"vFermion") = vop(sn, st)
+ITensors.state(sn::StateName"va†", st::SiteType"vFermion") = vop(sn, st)
 
-# Aliases (for backwards compatibility)
-function ITensors.state(::StateName"vecσx", st::SiteType"vFermion")
-    return ITensors.state(StateName("vσx"), st)
-end
-function ITensors.state(::StateName"vecσy", st::SiteType"vFermion")
-    return ITensors.state(StateName("vσy"), st)
-end
-function ITensors.state(::StateName"vecσz", st::SiteType"vFermion")
-    return ITensors.state(StateName("vσz"), st)
-end
-function ITensors.state(::StateName"vecplus", ::SiteType"vFermion")
-    return vec(ITensors.op(OpName("S+"), SiteType("S=1/2")), gellmannbasis(2))
-end
-function ITensors.state(::StateName"vecminus", ::SiteType"vFermion")
-    return vec(ITensors.op(OpName("S-"), SiteType("S=1/2")), gellmannbasis(2))
-end
-function ITensors.state(::StateName"vecN", st::SiteType"vFermion")
-    return ITensors.state(StateName("vN"), st)
-end
-function ITensors.state(::StateName"vecId", st::SiteType"vFermion")
-    return ITensors.state(StateName("vId"), st)
+function ITensors.state(::StateName"vecId", ::SiteType"vFermion")
+    return ITensors.state(StateName("vId"), SiteType("vFermion"))
 end
 
 # Operator dispatch
