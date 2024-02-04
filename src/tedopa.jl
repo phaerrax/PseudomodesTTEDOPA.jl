@@ -91,7 +91,7 @@ function thermalisedJ(J::Function, ω::Real, T::Real)
 end
 
 """
-    chainmapcoefficients(J::Function, support, L::Int; <keyword arguments>)
+    chainmapcoefficients(J::Function, support, L::Int; kwargs...)
 
 Compute the first `L` coefficients of the chain-map Hamiltonian obtained from
 the spectral density `J` defined over `support`.
@@ -99,9 +99,9 @@ the spectral density `J` defined over `support`.
 # Arguments
 - `J::Function`: non-negative function defined (at least) on `support`.
 - `support`: support of `J`; it can be a pair of real numbers, denoting an
-  interval, but can be more generally a list of increasing real numbers `[a1, 
-  a2, a3, …, aN]``, that will be interpreted as ``(a1,a2) ∪ (a2,a3) ∪ ⋯ ∪ 
-  (aN-1,aN)``.
+  interval, but can be more generally a list of increasing real numbers `[a_1, 
+  a_2, a_3, …, a_N]`, that will be interpreted as ``(a_1,a_2) ∪ (a_2,a_3) ∪ ⋯ ∪ 
+  (a_{N-1},a_N)``.
   The subdivision is ignored for the calculation of the chain coefficients, but
   it can become useful to compute the integral of `J` over `support`, since the
   numerical integration algorithm may need to exclude some intermediate points
@@ -120,11 +120,11 @@ It returns the tuple `(Ω,κ,η)` containing
 
 The spectral function `J` is associated to the recursion coefficients ``αₙ`` and
 ``βₙ`` which make up the recursion formula ``x πₙ(x) = πₙ₊₁(x) + αₙ πₙ(x) +
-βₙ πₙ₋₁(x)`` for the monic orthogonal polynomials ``{πₙ}ₙ``, ``n ∈ ℕ``
-determined by `J`. In the formula, π₋₁ is the null polynomial.
+βₙ πₙ₋₁(x)`` for the monic orthogonal polynomials ``\\{πₙ\\}_{n\\in ℕ}``
+determined by `J`. In the formula, ``π₋₁`` is the null polynomial.
 The chain coefficients are then given by
-- ``Ωᵢ = αᵢ``, with ``i ∈ {1,…,L}``,
-- ``κᵢ = sqrt(βᵢ₊₁)``, with ``i ∈ {1,…,L-1}``,
+- ``Ωᵢ = αᵢ``, with ``i\\in\\{1,\\dotsc,L\\}``,
+- ``κᵢ = \\sqrt{βᵢ₊₁}``, with ``i\\in\\{1,\\dotsc,L-1\\}``,
 while `η` is the integral of `J` over its support.
 """
 function chainmapcoefficients(J::Function, support, L::Int; kwargs...)

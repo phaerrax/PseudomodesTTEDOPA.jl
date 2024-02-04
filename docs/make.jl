@@ -1,5 +1,5 @@
 using Documenter
-using PseudomodesTTEDOPA
+using ITensors, PseudomodesTTEDOPA
 
 makedocs(
     sitename = "PseudomodesTTEDOPA",

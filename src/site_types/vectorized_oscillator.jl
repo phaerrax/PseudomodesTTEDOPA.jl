@@ -211,6 +211,13 @@ end
 #   vec(xAB) == op(⋅B) * vec(xA) == op(⋅B) * (op(⋅A) * vec(x))
 
 # Separate absorption and dissipation terms in GKSL equation
+"""
+    dissipator_gain(n::Int)
+
+Return an OpSum object representing a dissipator operator (as in a GKSL equation) on site
+`n`, associated to the jump operator `Adag` (the creation operator).
+The OpNames `A` and `Adag` must be defined for the site type in use.
+"""
 function dissipator_gain(n::Int)
     dsp = OpSum()
     # a† ρ a - ½ a a† ρ - ½ ρ a a†
@@ -220,6 +227,13 @@ function dissipator_gain(n::Int)
     return dsp
 end
 
+"""
+    dissipator_loss(n::Int)
+
+Return an OpSum object representing a dissipator operator (as in a GKSL equation) on site
+`n`, associated to the jump operator `A` (the annihilation operator).
+The OpNames `A` and `Adag` must be defined for the site type in use.
+"""
 function dissipator_loss(n::Int)
     dsp = OpSum()
     # a ρ a† - ½ a† a ρ - ½ ρ a† a
