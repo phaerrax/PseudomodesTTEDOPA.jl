@@ -11,7 +11,7 @@ site type.
 
 Moreover, the `gkslcommutator` function allows you to easily define the unitary term (the
 commutator) in the GKSL equation: given a list of operator names and site indices,
-it returns an OpSum object representing the $x\mapsto -i[A,x]$ map, for example
+it returns an OpSum object representing the ``x\mapsto -i[A,x]`` map, for example
 ```julia-repl
 julia> gkslcommutator("A", 1)
 sum(
@@ -27,9 +27,9 @@ sum(
 ```
 
 Operators are also vectorized, with the aim of computing expectation values: if
-$\{a_i\}_{i=1}^{d}$ and $\{r_i\}_{i=1}^{d}$ are, respectively, the coordinates of
-the operator $A$ and the state $\rho$ with respect to the Gell-Mann basis, then the
-expectation value $\operatorname{tr}(\rho A)$ is given by $\sum_{i=1}^{d}\overline{a_i}r_i$.
+``\{a_i\}_{i=1}^{d}`` and ``\{r_i\}_{i=1}^{d}`` are, respectively, the coordinates of
+the operator ``A`` and the state ``\rho`` with respect to the Gell-Mann basis, then the
+expectation value ``\operatorname{tr}(\rho A)`` is given by ``\sum_{i=1}^{d}\overline{a_i}r_i``.
 Below you can find some operators transformed this way: they are actually "states" in the
 ITensor formalism, even if they represent operators.
 Their operator names are usually obtained by prefixing a `v` to the original ITensor name.
@@ -49,8 +49,8 @@ sites = siteinds("vS=1/2", N)
 #### "vS=1/2" states
 
 The available state names for "vS=1/2" sites are:
-- `"Up"` spin in the $|{\uparrow}\rangle\langle{\uparrow}|$ state
-- `"Dn"` spin in the $|{\downarrow}\rangle\langle{\downarrow}|$ state
+- `"Up"` spin in the ``|{\uparrow}\rangle\langle{\uparrow}|`` state
+- `"Dn"` spin in the ``|{\downarrow}\rangle\langle{\downarrow}|`` state
 
 #### "vS=1/2" vectorized operators
 
@@ -62,14 +62,14 @@ N3 = state("vN", sites[3])
 ```
 
 Spin operators:
-- `"vId"` Identity operator $I_2$
-- `"vσx"` Pauli x matrix $\sigma^x$
-- `"vσy"` Pauli y matrix $\sigma^y$
-- `"vσz"` Pauli z matrix $\sigma^z$
-- `"vSx"` Spin x operator $S^x = \frac{1}{2} \sigma_x$
-- `"vSy"` Spin y operator $S^y = \frac{1}{2} \sigma_y$
-- `"vSz"` Spin z operator $S^z = \frac{1}{2} \sigma_z$
-- `"vN"` Number operator $N = \frac{1}{2} (I_2+\sigma_z)$
+- `"vId"` Identity operator ``I_2``
+- `"vσx"` Pauli x matrix ``\sigma^x``
+- `"vσy"` Pauli y matrix ``\sigma^y``
+- `"vσz"` Pauli z matrix ``\sigma^z``
+- `"vSx"` Spin x operator ``S^x = \frac{1}{2} \sigma_x``
+- `"vSy"` Spin y operator ``S^y = \frac{1}{2} \sigma_y``
+- `"vSz"` Spin z operator ``S^z = \frac{1}{2} \sigma_z``
+- `"vN"` Number operator ``N = \frac{1}{2} (I_2+\sigma_z)``
 
 
 ## "Osc" SiteType
@@ -91,9 +91,9 @@ Operators associated with "Osc" sites:
 Single-oscillator operators:
 - `"A"` (aliases: `"a"`) annihilation operator
 - `"Adag"` (aliases: `"adag"`, `"a†"`) creation operator
-- `"Asum"` equal to $a+a^\dagger$
-- `"X"` equal to $\frac{1}{\sqrt{2}}(a^\dagger+a)$
-- `"Y"` equal to $\frac{i}{\sqrt{2}}(a^\dagger-a)$
+- `"Asum"` equal to ``a+a^\dagger``
+- `"X"` equal to ``\frac{1}{\sqrt{2}}(a^\dagger+a)``
+- `"Y"` equal to ``\frac{i}{\sqrt{2}}(a^\dagger-a)``
 - `"N"` (aliases: `"n"`) number operator
 
 
@@ -110,12 +110,12 @@ sites = siteinds("vOsc", N; dim=4)
 
 States associated with "vOsc" sites.
 - "`n`", where `n` is an integer between `0` and `dim-1`, gives the Fock state
-  $|n\rangle\langle n|$
+  ``|n\rangle\langle n|``
 - `"ThermEq"`, with additional parameters `temperature` and `frequency`, gives the thermal
-  equilibrium (Gibbs) state $\operatorname{tr}(\exp(-\frac{\omega}{T}
-N))\exp(-\frac{\omega}{T} N)$
+  equilibrium (Gibbs) state ``\operatorname{tr}(\exp(-\frac{\omega}{T}
+N))\exp(-\frac{\omega}{T} N)``
 - `"X⋅ThermEq"`, with additional parameters `temperature` and `frequency`, gives the thermal
-  equilibrium state (as in the previous point) multiplied by $X=\frac{1}{\sqrt{2}}(a^\dagger+a)$ on the left (this is not actually a state, but it is useful when computing the correlation function of the $X$ operator)
+  equilibrium state (as in the previous point) multiplied by ``X=\frac{1}{\sqrt{2}}(a^\dagger+a)`` on the left (this is not actually a state, but it is useful when computing the correlation function of the ``X`` operator)
 
 Example:
 ```julia
