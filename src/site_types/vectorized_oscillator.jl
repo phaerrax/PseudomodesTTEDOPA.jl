@@ -64,6 +64,17 @@ function ITensors.op(
     return ITensors.op(on, ITensors.alias(st), s1, s_tail...; kwargs...)
 end
 
+# Shorthand notation:
+function vstate(sn::StateName, ::SiteType"vOsc", d::Int)
+    v = ITensors.state(sn, SiteType("Osc"))
+    return PseudomodesTTEDOPA.vec(kron(v, v'), gellmannbasis(d))
+end
+function vop(sn::StateName, ::SiteType"vOsc", d::Int)
+    sn = statenamestring(sn)
+    on = sn[1] == 'v' ? sn[2:end] : sn
+    return PseudomodesTTEDOPA.vec(try_op(OpName(on), SiteType("Osc"), d), gellmannbasis(d))
+end
+
 # States
 # ------
 function ITensors.state(::StateName{N}, ::SiteType"vOsc", d::Int) where {N}
@@ -108,24 +119,12 @@ end
 
 # States representing vectorised operators
 # ----------------------------------------
-function ITensors.state(::StateName"vAdag", ::SiteType"vOsc", d::Int)
-    return vec(ITensors.op(OpName("Adag"), SiteType("Osc"), d), gellmannbasis(d))
-end
-function ITensors.state(::StateName"vA", ::SiteType"vOsc", d::Int)
-    return vec(ITensors.op(OpName("A"), SiteType("Osc"), d), gellmannbasis(d))
-end
-function ITensors.state(::StateName"vN", ::SiteType"vOsc", d::Int)
-    return vec(ITensors.op(OpName("N"), SiteType("Osc"), d), gellmannbasis(d))
-end
-function ITensors.state(::StateName"vId", ::SiteType"vOsc", d::Int)
-    return vec(ITensors.op(OpName("Id"), SiteType("Osc"), d), gellmannbasis(d))
-end
-function ITensors.state(::StateName"vX", ::SiteType"vOsc", d::Int)
-    return vec(ITensors.op(OpName("X"), SiteType("Osc"), d), gellmannbasis(d))
-end
-function ITensors.state(::StateName"vY", ::SiteType"vOsc", d::Int)
-    return vec(ITensors.op(OpName("Y"), SiteType("Osc"), d), gellmannbasis(d))
-end
+ITensors.state(sn::StateName"vAdag", st::SiteType"vOsc", d::Int) = vop(sn, st, d)
+ITensors.state(sn::StateName"vA", st::SiteType"vOsc", d::Int) = vop(sn, st, d)
+ITensors.state(sn::StateName"vN", st::SiteType"vOsc", d::Int) = vop(sn, st, d)
+ITensors.state(sn::StateName"vId", st::SiteType"vOsc", d::Int) = vop(sn, st, d)
+ITensors.state(sn::StateName"vX", st::SiteType"vOsc", d::Int) = vop(sn, st, d)
+ITensors.state(sn::StateName"vY", st::SiteType"vOsc", d::Int) = vop(sn, st, d)
 
 # Aliases (for backwards compatibility)
 function ITensors.state(::StateName"veca+", st::SiteType"vOsc", d::Int)
@@ -147,48 +146,59 @@ function ITensors.state(::StateName"vecId", st::SiteType"vOsc", d::Int)
     return ITensors.state(StateName("vId"), st, d)
 end
 
-# Operators acting on vectorised oscillators
-# ------------------------------------------
-function ITensors.op(::OpName"Id", ::SiteType"vOsc", d::Int)
-    # The basis is orthonormal wrt the trace, therefore
-    #   tr(bi' * id(bj)) == tr(bi' * bj) == delta(i,j).
-    # It's the identity matrix whatever the basis, it's useless to compute its
-    # vectorization.
-    return Matrix(1.0I, d^2, d^2)
+# Operator dispatch
+# =================
+function premultiply(mat, ::SiteType"vOsc", d::Int)
+    return PseudomodesTTEDOPA.vec(x -> mat * x, gellmannbasis(d))
 end
-function ITensors.op(::OpName"⋅Id", st::SiteType"vOsc", d::Int)
-    return ITensors.op(OpName("Id"), st, d)
-end
-function ITensors.op(::OpName"Id⋅", st::SiteType"vOsc", d::Int)
-    return ITensors.op(OpName("Id"), st, d)
+function postmultiply(mat, ::SiteType"vOsc", d::Int)
+    return PseudomodesTTEDOPA.vec(x -> x * mat, gellmannbasis(d))
 end
 
-function ITensors.op(::OpName"⋅Adag", ::SiteType"vOsc", d::Int)
-    return vec(x -> x * ITensors.op(OpName("Adag"), SiteType("Osc"), d), gellmannbasis(d))
-end
-function ITensors.op(::OpName"Adag⋅", ::SiteType"vOsc", d::Int)
-    return vec(x -> ITensors.op(OpName("Adag"), SiteType("Osc"), d) * x, gellmannbasis(d))
-end
-
-function ITensors.op(::OpName"⋅A", ::SiteType"vOsc", d::Int)
-    return vec(x -> x * ITensors.op(OpName("A"), SiteType("Osc"), d), gellmannbasis(d))
-end
-function ITensors.op(::OpName"A⋅", ::SiteType"vOsc", d::Int)
-    return vec(x -> ITensors.op(OpName("A"), SiteType("Osc"), d) * x, gellmannbasis(d))
-end
-
-function ITensors.op(::OpName"Asum⋅", ::SiteType"vOsc", d::Int)
-    return vec(x -> ITensors.op(OpName("Asum"), SiteType("Osc"), d) * x, gellmannbasis(d))
-end
-function ITensors.op(::OpName"⋅Asum", ::SiteType"vOsc", d::Int)
-    return vec(x -> x * ITensors.op(OpName("Asum"), SiteType("Osc"), d), gellmannbasis(d))
-end
-
-function ITensors.op(::OpName"N⋅", ::SiteType"vOsc", d::Int)
-    return vec(x -> ITensors.op(OpName("N"), SiteType("Osc"), d) * x, gellmannbasis(d))
-end
-function ITensors.op(::OpName"⋅N", ::SiteType"vOsc", d::Int)
-    return vec(x -> x * ITensors.op(OpName("N"), SiteType("Osc"), d), gellmannbasis(d))
+# The goal here is to define operators "A⋅" and "⋅A" in an automatic way whenever the
+# OpName "A" is defined for the Osc site type.
+# This is handy, but unless we find a better way to define this function this means that
+# _every_ operator has to be written this way; we cannot just return op(on, st) at the end
+# if no "⋅" is found, otherwise an infinite loop would be entered.
+# We make an exception, though, for "Id" since it is an essential operator, and something
+# would probably break if it weren't defined.
+function ITensors.op(on::OpName, st::SiteType"vOsc", d::Int; kwargs...)
+    name = strip(String(ITensors.name(on))) # Remove extra whitespace
+    if name == "Id"
+        return Matrix(1.0I, d^2, d^2)
+    end
+    dotloc = findfirst("⋅", name)
+    # This returns the position of the cdot in the operator name String.
+    # It is `nothing` if no cdot is found.
+    if !isnothing(dotloc)
+        on1, on2 = nothing, nothing
+        on1 = name[1:prevind(name, dotloc.start)]
+        on2 = name[nextind(name, dotloc.start):end]
+        # If the OpName `on` is written correctly, i.e. it is either "A⋅" or "⋅A" for some
+        # A, then either `on1` or `on2` has to be empty (not both, not neither of them).
+        if (on1 == "" && on2 == "") || (on1 != "" && on2 != "")
+            throw(
+                ArgumentError(
+                    "Invalid operator name: $name. Operator name is not \"Id\" or of the " *
+                    "form \"A⋅\" or \"⋅A\"",
+                ),
+            )
+        end
+        # name == "⋅A" -> on1 is an empty string
+        # name == "A⋅" -> on2 is an empty string
+        if on1 == ""
+            mat = try_op(OpName(on2), SiteType("Osc"), d; kwargs...)
+            return postmultiply(mat, st, d)
+        elseif on2 == ""
+            mat = try_op(OpName(on1), SiteType("Osc"), d; kwargs...)
+            return premultiply(mat, st, d)
+        else
+            # This should logically never happen but, just in case, we throw an error.
+            error("Unknown error with operator name $name")
+        end
+    else
+        error("Operator name $name is not \"Id\" or of the form \"A⋅\" or \"⋅A\"")
+    end
 end
 
 # GKSL equation terms
@@ -267,24 +277,4 @@ function mixedlindbladminus(n1::Int, n2::Int)
     x += -0.5, "⋅A", n1, "⋅Adag", n2
     x += -0.5, "⋅Adag", n1, "⋅A", n2
     return x
-end
-
-# Aliases (for backwards compatibility)
-function ITensors.op(::OpName"⋅a+", st::SiteType"vOsc", d::Int)
-    return ITensors.op(OpName("⋅Adag"), st, d)
-end
-function ITensors.op(::OpName"a+⋅", st::SiteType"vOsc", d::Int)
-    return ITensors.op(OpName("Adag⋅"), st, d)
-end
-function ITensors.op(::OpName"⋅a-", st::SiteType"vOsc", d::Int)
-    return ITensors.op(OpName("⋅A"), st, d)
-end
-function ITensors.op(::OpName"a-⋅", st::SiteType"vOsc", d::Int)
-    return ITensors.op(OpName("A⋅"), st, d)
-end
-function ITensors.op(::OpName"⋅asum", st::SiteType"vOsc", d::Int)
-    return ITensors.op(OpName("⋅Asum"), st, d)
-end
-function ITensors.op(::OpName"asum⋅", st::SiteType"vOsc", d::Int)
-    return ITensors.op(OpName("Asum⋅"), st, d)
 end

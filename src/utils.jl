@@ -826,21 +826,61 @@ function try_op(on::OpName, st::SiteType; kwargs...)
         r = ITensors.op!(Op, on, st, dummy; kwargs...)
         if isnothing(r)
             throw(
-                  ArgumentError(
-                                "Overload of \"op\" or \"op!\" functions not found for " *
-                                "operator name \"$opstring\" and Index tag $(tags(dummy)).",
-                               ),
-                 )
+                ArgumentError(
+                    "Overload of \"op\" or \"op!\" functions not found for " *
+                    "operator name \"$opstring\" and Index tag $(tags(dummy)).",
+                ),
+            )
         end
         mat = matrix(Op)
     end
     if isnothing(mat)
         throw(
-              ArgumentError(
-                            "Overload of \"op\" or \"op!\" functions not found for operator " *
-                            "name \"$opstring\" and Index tag \"$stname\".",
-                           ),
-             )
+            ArgumentError(
+                "Overload of \"op\" or \"op!\" functions not found for operator " *
+                "name \"$opstring\" and Index tag \"$stname\".",
+            ),
+        )
+    end
+    return mat
+end
+
+"""
+    try_op(on::OpName, st::SiteType, d::Int; kwargs...)
+
+Like try_op(on::OpName, st::SiteType; kwargs...) (see [`try_op`](@ref)), but with an
+additional Int argument so that it can be used by SiteTypes without a fixed dimension.
+"""
+function try_op(on::OpName, st::SiteType, d::Int; kwargs...)
+    stname = String(ITensors.tag(st))
+    opstring = String(ITensors.name(on))
+    # Try calling a function of the form:
+    #    op(::OpName, ::SiteType, ::Int; kwargs...)
+    # which returns a Julia matrix
+    mat = ITensors.op(on, st, d; kwargs...)
+    if isnothing(mat)
+        # Otherwise try calling a function of the form
+        #    op!(::ITensor, ::OpName, ::SiteType, ::Index..., ::Int; kwargs...)
+        dummy = siteind(stname)
+        Op = ITensor(prime(dummy), ITensors.dag(dummy))
+        r = ITensors.op!(Op, on, st, dummy, d; kwargs...)
+        if isnothing(r)
+            throw(
+                ArgumentError(
+                    "Overload of \"op\" or \"op!\" functions not found for " *
+                    "operator name \"$opstring\" and Index tag $(tags(dummy)).",
+                ),
+            )
+        end
+        mat = matrix(Op)
+    end
+    if isnothing(mat)
+        throw(
+            ArgumentError(
+                "Overload of \"op\" or \"op!\" functions not found for operator " *
+                "name \"$opstring\" and Index tag \"$stname\".",
+            ),
+        )
     end
     return mat
 end

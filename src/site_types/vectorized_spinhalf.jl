@@ -46,52 +46,34 @@ function ITensors.op(on::OpName, st::SiteType"HvS=1/2"; kwargs...)
     return ITensors.op(on, ITensors.alias(st); kwargs...)
 end
 
-# States
-# ------
+# Shorthand notation:
+function vstate(sn::StateName, ::SiteType"vS=1/2")
+    v = ITensors.state(sn, SiteType("S=1/2"))
+    return PseudomodesTTEDOPA.vec(kron(v, v'), gellmannbasis(2))
+end
+function vop(sn::StateName, ::SiteType"vS=1/2")
+    sn = statenamestring(sn)
+    on = sn[1] == 'v' ? sn[2:end] : sn
+    return PseudomodesTTEDOPA.vec(try_op(OpName(on), SiteType("S=1/2")), gellmannbasis(2))
+end
 
-# "Up" = ê₊ ⊗ ê₊' = ⎡1⎤ ⊗ [1 0]
-#                   ⎣0⎦
-# "Dn" = ê₋ ⊗ ê₋' = ⎡0⎤ ⊗ [0 1]
-#                   ⎣1⎦
-# We don't use them explicitly, however, but we refer to how ITensors implements
-# them; this way, we are sure that the operators act correctly on these states.
-function ITensors.state(sn::StateName"Up", ::SiteType"vS=1/2")
-    v = ITensors.state(sn, SiteType("S=1/2"))
-    return vec(kron(v, v'), gellmannbasis(2))
-end
-function ITensors.state(sn::StateName"Dn", ::SiteType"vS=1/2")
-    v = ITensors.state(sn, SiteType("S=1/2"))
-    return vec(kron(v, v'), gellmannbasis(2))
-end
+# States (actual ones)
+# --------------------
+ITensors.state(sn::StateName"Up", st::SiteType"vS=1/2") = vstate(sn, st)
+ITensors.state(sn::StateName"Dn", st::SiteType"vS=1/2") = vstate(sn, st)
 
 # States representing vectorised operators
 # ----------------------------------------
-function ITensors.state(::StateName"vSx", ::SiteType"vS=1/2")
-    return vec(ITensors.op(OpName("Sx"), SiteType("S=1/2")), gellmannbasis(2))
-end
-function ITensors.state(::StateName"vSy", ::SiteType"vS=1/2")
-    return vec(ITensors.op(OpName("Sy"), SiteType("S=1/2")), gellmannbasis(2))
-end
-function ITensors.state(::StateName"vSz", ::SiteType"vS=1/2")
-    return vec(ITensors.op(OpName("Sz"), SiteType("S=1/2")), gellmannbasis(2))
-end
+ITensors.state(sn::StateName"vSx", st::SiteType"vS=1/2") = vop(sn, st)
+ITensors.state(sn::StateName"vSy", st::SiteType"vS=1/2") = vop(sn, st)
+ITensors.state(sn::StateName"vSz", st::SiteType"vS=1/2") = vop(sn, st)
 
-function ITensors.state(::StateName"vσx", st::SiteType"vS=1/2")
-    return 2 * ITensors.state(StateName("vSx"), st)
-end
-function ITensors.state(::StateName"vσy", st::SiteType"vS=1/2")
-    return 2 * ITensors.state(StateName("vSy"), st)
-end
-function ITensors.state(::StateName"vσz", st::SiteType"vS=1/2")
-    return 2 * ITensors.state(StateName("vSz"), st)
-end
+ITensors.state(sn::StateName"vσx", st::SiteType"vS=1/2") = vop(sn, st)
+ITensors.state(sn::StateName"vσy", st::SiteType"vS=1/2") = vop(sn, st)
+ITensors.state(sn::StateName"vσz", st::SiteType"vS=1/2") = vop(sn, st)
 
-function ITensors.state(::StateName"vId", ::SiteType"vS=1/2")
-    return vec(ITensors.op(OpName("Id"), SiteType("S=1/2")), gellmannbasis(2))
-end
-function ITensors.state(::StateName"vN", ::SiteType"vS=1/2")
-    return vec(ITensors.op(OpName("N"), SiteType("S=1/2")), gellmannbasis(2))
-end
+ITensors.state(sn::StateName"vId", st::SiteType"vS=1/2") = vop(sn, st)
+ITensors.state(sn::StateName"vN", st::SiteType"vS=1/2") = vop(sn, st)
 
 # Aliases (for backwards compatibility)
 function ITensors.state(::StateName"vecσx", st::SiteType"vS=1/2")
@@ -116,67 +98,57 @@ function ITensors.state(::StateName"vecId", st::SiteType"vS=1/2")
     return ITensors.state(StateName("vId"), st)
 end
 
-# Operators acting on vectorised spins
-# ------------------------------------
-# Luckily, even when they are acting on two sites at the same times, every
-# operator we need to define is factorised (or a sum of factorised operators).
-# This simplifies the calculations immensely: if
-#   L : Mat(ℂ²) ⊗ Mat(ℂ²) → Mat(ℂ²) ⊗ Mat(ℂ²)
-# can be written as L₁ ⊗ L₂ for Lᵢ : Mat(ℂ²) → Mat(ℂ²) then
-#   ⟨êᵢ₁ ⊗ êᵢ₂, L(êⱼ₁ ⊗ êⱼ₂)⟩ = ⟨êᵢ₁, L₁(êⱼ₁)⟩ ⟨êᵢ₂, L₂(êⱼ₂)⟩.
-
-function ITensors.op(::OpName"Id", ::SiteType"vS=1/2")
-    return Matrix(1.0I, 4, 4)
+# Operator dispatch
+# =================
+function premultiply(mat, ::SiteType"vS=1/2")
+    return PseudomodesTTEDOPA.vec(x -> mat * x, gellmannbasis(2))
 end
-ITensors.op(::OpName"⋅Id", st::SiteType"vS=1/2") = ITensors.op(OpName("Id"), st)
-ITensors.op(::OpName"Id⋅", st::SiteType"vS=1/2") = ITensors.op(OpName("Id"), st)
-
-# N == σ⁺σ⁻
-function ITensors.op(::OpName"N⋅", ::SiteType"vS=1/2")
-    return vec(x -> ITensors.op(OpName("N"), SiteType("S=1/2")) * x, gellmannbasis(2))
-end
-function ITensors.op(::OpName"⋅N", ::SiteType"vS=1/2")
-    return vec(x -> x * ITensors.op(OpName("N"), SiteType("S=1/2")), gellmannbasis(2))
+function postmultiply(mat, ::SiteType"vS=1/2")
+    return PseudomodesTTEDOPA.vec(x -> x * mat, gellmannbasis(2))
 end
 
-function ITensors.op(s::OpName"σ+⋅", ::SiteType"vS=1/2")
-    return vec(x -> ITensors.op(OpName("S+"), SiteType("S=1/2")) * x, gellmannbasis(2))
-end
-function ITensors.op(::OpName"⋅σ+", ::SiteType"vS=1/2")
-    return vec(x -> x * ITensors.op(OpName("S+"), SiteType("S=1/2")), gellmannbasis(2))
-end
-
-function ITensors.op(s::OpName"σ-⋅", ::SiteType"vS=1/2")
-    return vec(x -> ITensors.op(OpName("S-"), SiteType("S=1/2")) * x, gellmannbasis(2))
-end
-function ITensors.op(::OpName"⋅σ-", ::SiteType"vS=1/2")
-    return vec(x -> x * ITensors.op(OpName("S-"), SiteType("S=1/2")), gellmannbasis(2))
-end
-
-function ITensors.op(s::OpName"σx⋅", ::SiteType"vS=1/2")
-    return vec(x -> ITensors.op(OpName("σx"), SiteType("S=1/2")) * x, gellmannbasis(2))
-end
-function ITensors.op(::OpName"⋅σx", ::SiteType"vS=1/2")
-    return vec(x -> x * ITensors.op(OpName("σx"), SiteType("S=1/2")), gellmannbasis(2))
-end
-
-function ITensors.op(s::OpName"σy⋅", ::SiteType"vS=1/2")
-    return vec(x -> ITensors.op(OpName("σy"), SiteType("S=1/2")) * x, gellmannbasis(2))
-end
-function ITensors.op(::OpName"⋅σy", ::SiteType"vS=1/2")
-    return vec(x -> x * ITensors.op(OpName("σy"), SiteType("S=1/2")), gellmannbasis(2))
-end
-
-function ITensors.op(s::OpName"σz⋅", ::SiteType"vS=1/2")
-    return vec(x -> ITensors.op(OpName("σz"), SiteType("S=1/2")) * x, gellmannbasis(2))
-end
-function ITensors.op(::OpName"⋅σz", ::SiteType"vS=1/2")
-    return vec(x -> x * ITensors.op(OpName("σz"), SiteType("S=1/2")), gellmannbasis(2))
-end
-
-function ITensors.op(s::OpName"F⋅", ::SiteType"vS=1/2")
-    return vec(x -> ITensors.op(OpName("F"), SiteType("S=1/2")) * x, gellmannbasis(2))
-end
-function ITensors.op(::OpName"⋅F", ::SiteType"vS=1/2")
-    return vec(x -> x * ITensors.op(OpName("F"), SiteType("S=1/2")), gellmannbasis(2))
+# The goal here is to define operators "A⋅" and "⋅A" in an automatic way whenever the
+# OpName "A" is defined for the S=1/2 site type.
+# This is handy, but unless we find a better way to define this function this means that
+# _every_ operator has to be written this way; we cannot just return op(on, st) at the end
+# if no "⋅" is found, otherwise an infinite loop would be entered.
+# We make an exception, though, for "Id" since it is an essential operator, and something
+# would probably break if it weren't defined.
+function ITensors.op(on::OpName, st::SiteType"vS=1/2"; kwargs...)
+    name = strip(String(ITensors.name(on))) # Remove extra whitespace
+    if name == "Id"
+        return Matrix(1.0I, 4, 4)
+    end
+    dotloc = findfirst("⋅", name)
+    # This returns the position of the cdot in the operator name String.
+    # It is `nothing` if no cdot is found.
+    if !isnothing(dotloc)
+        on1, on2 = nothing, nothing
+        on1 = name[1:prevind(name, dotloc.start)]
+        on2 = name[nextind(name, dotloc.start):end]
+        # If the OpName `on` is written correctly, i.e. it is either "A⋅" or "⋅A" for some
+        # A, then either `on1` or `on2` has to be empty (not both, not neither of them).
+        if (on1 == "" && on2 == "") || (on1 != "" && on2 != "")
+            throw(
+                ArgumentError(
+                    "Invalid operator name: $name. Operator name is not \"Id\" or of the " *
+                    "form \"A⋅\" or \"⋅A\"",
+                ),
+            )
+        end
+        # name == "⋅A" -> on1 is an empty string
+        # name == "A⋅" -> on2 is an empty string
+        if on1 == ""
+            mat = try_op(OpName(on2), SiteType("S=1/2"); kwargs...)
+            return postmultiply(mat, st)
+        elseif on2 == ""
+            mat = try_op(OpName(on1), SiteType("S=1/2"); kwargs...)
+            return premultiply(mat, st)
+        else
+            # This should logically never happen but, just in case, we throw an error.
+            error("Unknown error with operator name $name")
+        end
+    else
+        error("Operator name $name is not \"Id\" or of the form \"A⋅\" or \"⋅A\"")
+    end
 end
