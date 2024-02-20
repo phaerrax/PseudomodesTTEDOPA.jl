@@ -48,7 +48,6 @@ export allequal,
     sitenumber,
     jwstring
 
-
 include("utils.jl")
 
 export spin_current_op_list
@@ -80,7 +79,8 @@ export twositeoperators,
     dissipator_asymmetric,
     lindbladian_xy,
     hamiltonian_xy,
-    gkslcommutator
+    gkslcommutator,
+    gkslcommutator_itensor
 
 include("operators.jl")
 

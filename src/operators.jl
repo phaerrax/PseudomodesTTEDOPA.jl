@@ -455,8 +455,8 @@ function gkslcommutator(operators::Tuple{String,Int}...)
     l = OpSum()
     opnames = first.(operators)
     sites = last.(operators)
-    l += (-im, collect(Iterators.flatten(zip(opnames .* "⋅", sites)))...,)
-    l += (+im, collect(Iterators.flatten(zip("⋅" .* opnames, sites)))...,)
+    l += (-im, collect(Iterators.flatten(zip(opnames .* "⋅", sites)))...)
+    l += (+im, collect(Iterators.flatten(zip("⋅" .* opnames, sites)))...)
     return l
 end
 
@@ -479,3 +479,86 @@ sum(
 ```
 """
 gkslcommutator(args...) = gkslcommutator(makeopsumpairs(args...)...)
+
+"""
+    gkslcommutator_itensor(operator::String, sites::Index...)
+
+Return an ITensor object representing the operation ``x ↦ -i[A, x]`` where ``A`` is the
+given `operator`, acting on the sites listed in `sites`.
+The `operator` string may be:
+
+- a single, valid, ITensors' OpName `a`, whose variants `a⋅` and `⋅a` are defined;
+- the "tensor product" of two or more valid operators (as in the previous point), i.e.
+    OpNames separated by a `⊗` symbol (an `\\otimes`).
+
+
+# Examples
+
+We start from a system of three 1/2-spins:
+```julia
+s = siteinds("vS=1/2", 3)
+```
+
+Take an operator ``U`` which is ``Sˣ`` on the second site and the identity on the
+others. The commutator ``ρ ↦ -i[U,ρ]`` is given by
+```julia
+gkslcommutator_itensor("Sx", s[2])
+```
+
+An operator ``V`` which is ``Sy`` on the first site, the identity on the second one, and
+``Sz`` on the third one. The commutator ``ρ ↦ -i[V,ρ]`` is given by
+```julia
+gkslcommutator_itensor("Sy ⊗ Sz", s[1], s[3])
+```
+"""
+function gkslcommutator_itensor(operator::String, sites::Index...)
+    operator_names = strip.(split(operator, "⊗"; keepempty=false), ' ')
+    lmult = ITensors.OneITensor()
+    rmult = ITensors.OneITensor()
+    if length(operator_names) != length(sites)
+        error("Sites do not match")
+    end
+    for (on, s) in zip(operator_names, sites)
+        lmult *= op("$on⋅", s)
+        rmult *= op("⋅$on", s)
+    end
+    return -im * (lmult - rmult)
+end
+
+"""
+    gkslcommutator_itensor(operator::String, site_list::Vector{<:Index}, indices::Int...)
+
+Return an ITensor object representing the operation ``x ↦ -i[A, x]`` where ``A`` is the
+given `operator`, acting on the sites (within `site_list`) listed in `indices`.
+The `operator` string may be:
+
+- a single, valid, ITensors' OpName `a`, whose variants `a⋅` and `⋅a` are defined;
+- the "tensor product" of two or more valid operators (as in the previous point), i.e.
+    OpNames separated by a `⊗` symbol (an `\\otimes`).
+
+
+# Examples
+
+We start from a system of three 1/2-spins:
+```julia
+s = siteinds("vS=1/2", 3)
+```
+
+Take an operator ``U`` which is ``Sˣ`` on the second site and the identity on the
+others. The commutator ``ρ ↦ -i[U,ρ]`` is given by
+```julia
+gkslcommutator_itensor("Sx", s, 2)
+```
+
+An operator ``V`` which is ``Sy`` on the first site, the identity on the second one, and
+``Sz`` on the third one. The commutator ``ρ ↦ -i[V,ρ]`` is given by
+```julia
+gkslcommutator_itensor("Sy ⊗ Sz", s, 1, 3)
+```
+"""
+function gkslcommutator_itensor(
+    operator::String, site_list::Vector{<:Index}, indices::Int...
+)
+    sites = [site_list[i] for i in indices]
+    return gkslcommutator_itensor(operator, sites...)
+end
