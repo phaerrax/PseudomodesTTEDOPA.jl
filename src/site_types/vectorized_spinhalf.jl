@@ -68,6 +68,10 @@ ITensors.state(sn::StateName"vSx", st::SiteType"vS=1/2") = vop(sn, st)
 ITensors.state(sn::StateName"vSy", st::SiteType"vS=1/2") = vop(sn, st)
 ITensors.state(sn::StateName"vSz", st::SiteType"vS=1/2") = vop(sn, st)
 
+ITensors.state(sn::StateName"vX", st::SiteType"vS=1/2") = vop(sn, st)
+ITensors.state(sn::StateName"vY", st::SiteType"vS=1/2") = vop(sn, st)
+ITensors.state(sn::StateName"vZ", st::SiteType"vS=1/2") = vop(sn, st)
+
 ITensors.state(sn::StateName"vσx", st::SiteType"vS=1/2") = vop(sn, st)
 ITensors.state(sn::StateName"vσy", st::SiteType"vS=1/2") = vop(sn, st)
 ITensors.state(sn::StateName"vσz", st::SiteType"vS=1/2") = vop(sn, st)
