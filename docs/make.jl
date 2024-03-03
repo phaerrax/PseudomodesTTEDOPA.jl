@@ -1,10 +1,10 @@
-using Documenter
+using Documenter, Documenter.Remotes
 using ITensors, PseudomodesTTEDOPA
 
 makedocs(
     sitename = "PseudomodesTTEDOPA",
     format = Documenter.HTML(),
-    remotes = nothing,
+    repo = Remotes.GitHub("phaerrax", "PseudomodesTTEDOPA.jl"),
     modules = [PseudomodesTTEDOPA],
     checkdocs = :none,
     draft = true,
