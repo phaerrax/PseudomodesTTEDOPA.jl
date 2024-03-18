@@ -1,7 +1,7 @@
 name = "PseudomodesTTEDOPA"
 uuid = "79a75d10-d622-4972-b86a-039507c8d45b"
 authors = ["Davide Ferracin <davide.ferracin@protonmail.com> and contributors"]
-version = "0.12.1"
+version = "0.13.0"
 
 [deps]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
@@ -19,4 +19,4 @@ QuadGK = "1fd47b50-473d-5c70-9696-f719f8f3bcdc"
 
 [compat]
 ITensors = "0.3.19"
-julia = "1.6"
+julia = "<1.10.3"
